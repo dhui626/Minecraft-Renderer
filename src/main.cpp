@@ -126,6 +126,7 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     /* create a valid OpenGL rendering context and call glewInit() to initialize the extension entry points*/
     if (glewInit() != GLEW_OK)
@@ -173,14 +174,28 @@ int main(void)
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
     glUseProgram(shader);
 
+    int location = glGetUniformLocation(shader, "u_Color");
+    ASSERT(location != -1);
+    float red = 0.8f;
+    float increment = 0.05f;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
-        GLCall(glDrawElements(GL_TRIANGLES, 12, GL_INT, nullptr)); // wrong 
+        glUniform4f(location, red, 0.3f, 0.8f, 1.0f);
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+        //GLCall(glDrawElements(GL_TRIANGLES, 12, GL_INT, nullptr)); // wrong 
+
+        if (red > 1.0f)
+            increment = -0.05f;
+        else if (red < 0.0f)
+            increment = 0.05f;
+
+        red += increment;
+
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
