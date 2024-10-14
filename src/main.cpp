@@ -5,25 +5,10 @@
 #include <string>
 #include <sstream>
 
-#define ASSERT(x) if(!(x)) __debugbreak();
-#define GLCall(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+#include "Renderer.h"
 
-static void GLClearError()
-{
-    while (glGetError() != GL_NO_ERROR);    
-}
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error] (" << error << ")" 
-            << "\nFunction: " << function << "\nFile: " << file << "\nLine: " << line << std::endl;
-        return false;
-    }
-    return true;
-}
-
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource
 {
@@ -161,18 +146,16 @@ int main(void)
 
     // vertex buffer
     unsigned int vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), positions, GL_STATIC_DRAW);
+    VertexBuffer vb(positions, sizeof(positions));
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), 0);
     glEnableVertexAttribArray(0);
 
     // index buffer
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    IndexBuffer ib(indices, sizeof(indices) / sizeof(unsigned int));
+
+
 
     //Load shader file
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -204,7 +187,7 @@ int main(void)
         glUniform4f(location, red, 0.3f, 0.8f, 1.0f);
 
         glBindVertexArray(vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        ib.Bind();
 
         GLCall(glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr));
         //GLCall(glDrawElements(GL_TRIANGLES, 12, GL_INT, nullptr)); // wrong 
@@ -226,6 +209,7 @@ int main(void)
 
     glDeleteProgram(shader);
 
+    // Need to be called AFTER vbo/ibo is deleted (unfixed)
     glfwTerminate();
     return 0;
 }
