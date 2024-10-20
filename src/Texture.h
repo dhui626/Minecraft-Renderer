@@ -8,6 +8,9 @@ public:
 	Texture(const std::string& path);
 	~Texture();
 
+	void AddTexture(const std::string& path, unsigned int slot);
+	void BuildTexture(unsigned int slot);
+
 	void Bind(unsigned int slot = 0) const;
 	void Unbind() const;
 
@@ -16,7 +19,7 @@ public:
 
 private:
 	unsigned int m_RendererID;
-	std::string m_FilePath;
+	std::vector<std::string> m_FilePath;
 	unsigned char* m_LocalBuffer;
 	int m_Width, m_Height, m_BPP;
 };

@@ -48,8 +48,8 @@ int main(void)
          //position  //texture coord  //color
          -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
           0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //1
-          0.5f, 0.5f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f, //2
-         -0.5f, 0.5f, 0.0f, 1.0f,  1.0f, 0.0f, 1.0f, //3
+          0.5f, 0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, //2
+         -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //3
     };
 
     unsigned int indices[] = {
@@ -83,9 +83,13 @@ int main(void)
     //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
     //shader.SetUniformMat4f("u_MVP", proj);
 
-    Texture texture("res/textures/ChernoLogo.png");
+    Texture texture("res/textures/ChernoLogo2.png");
     texture.Bind();
     shader.SetUniform1i("u_Texture", 0);
+    // second texture
+    texture.AddTexture("res/textures/illust.jpg", 1);
+    texture.Bind(1);
+    shader.SetUniform1i("u_Texture2", 1);
 
     shader.Unbind();
     va.Unbind();
