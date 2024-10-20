@@ -1,11 +1,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <string>
 #include <iostream>
 
 #include "Renderer.h"
-
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
@@ -44,10 +45,11 @@ int main(void)
     std::cout << "OpenGL Version:\t" << glGetString(GL_VERSION) << std::endl;
 
     float positions[] = {
-         -0.5f, -0.5f, 0.0f, 0.0f, //0
-          0.5f, -0.5f, 1.0f, 0.0f, //1
-          0.5f, 0.5f, 1.0f, 1.0f,  //2
-         -0.5f, 0.5f, 0.0f, 1.0f,  //3
+         //position  //texture coord  //color
+         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
+          0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //1
+          0.5f, 0.5f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f, //2
+         -0.5f, 0.5f, 0.0f, 1.0f,  1.0f, 0.0f, 1.0f, //3
     };
 
     unsigned int indices[] = {
@@ -71,12 +73,15 @@ int main(void)
     VertexBufferLayout layout;
     layout.Push<float>(2);
     layout.Push<float>(2);
+    layout.Push<float>(3);
     va.AddBuffer(vb, layout);
 
     //Load shader file
     Shader shader("res/shaders/Basic.shader");
     shader.Bind();
     shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+    //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+    //shader.SetUniformMat4f("u_MVP", proj);
 
     Texture texture("res/textures/ChernoLogo.png");
     texture.Bind();
@@ -91,6 +96,8 @@ int main(void)
 
     float red = 0.8f;
     float increment = 0.05f;
+    float green = 0.2f;
+    float increment2 = 0.01f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -99,7 +106,7 @@ int main(void)
         renderer.Clear();
 
         shader.Bind();
-        shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);
+        shader.SetUniform4f("u_Color", red, green, 0.8f, 1.0f);
 
         renderer.Draw(va, ib, shader);
 
@@ -108,8 +115,13 @@ int main(void)
         else if (red < 0.0f)
             increment = 0.05f;
 
-        red += increment;
+        if (green > 1.0f)
+            increment2 = -0.02f;
+        else if (green < 0.0f)
+            increment2 = 0.02f;
 
+        red += increment;
+        green += increment2;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
