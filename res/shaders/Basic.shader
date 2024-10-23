@@ -2,7 +2,7 @@
 #shader vertex
 #version 330 core
 
-layout(location = 0) in vec2 position;
+layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec3 color;
 
@@ -10,14 +10,17 @@ out vec2 v_TexCoord;
 out vec3 v_Color;
 
 uniform vec4 u_Color;
-//uniform mat4 u_MVP;
+uniform mat4 u_Model;
+uniform mat4 u_View;
+uniform mat4 u_Proj;
 
 void main()
 {
-    gl_Position = vec4(position.x + u_Color.x - 0.5, position.y + u_Color.y - 0.5, 0, 1);
+    gl_Position = u_Proj * u_View * u_Model * vec4(position.xyz, 1);
     v_TexCoord = texCoord;
     v_Color = color;
 };
+
 
 #shader fragment
 #version 330 core

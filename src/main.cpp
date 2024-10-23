@@ -44,12 +44,56 @@ int main(void)
 
     std::cout << "OpenGL Version:\t" << glGetString(GL_VERSION) << std::endl;
 
+    //float positions[] = {
+    //     //position       //texture coord  //color
+    //     -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
+    //      0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //1
+    //      0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, //2
+    //     -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //3
+    //};
+
     float positions[] = {
-         //position  //texture coord  //color
-         -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
-          0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //1
-          0.5f, 0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f, //2
-         -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //3
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.2f, 0.3f, 0.8f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.2f, 0.3f, 0.8f
     };
 
     unsigned int indices[] = {
@@ -71,7 +115,7 @@ int main(void)
     IndexBuffer ib(indices, sizeof(indices) / sizeof(unsigned int));
 
     VertexBufferLayout layout;
-    layout.Push<float>(2);
+    layout.Push<float>(3);
     layout.Push<float>(2);
     layout.Push<float>(3);
     va.AddBuffer(vb, layout);
@@ -80,8 +124,22 @@ int main(void)
     Shader shader("res/shaders/Basic.shader");
     shader.Bind();
     shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-    //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-    //shader.SetUniformMat4f("u_MVP", proj);
+
+    //MVP matrix
+    glm::mat4 model(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    shader.SetUniformMat4f("u_Model", model);
+
+    glm::mat4 view(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    shader.SetUniformMat4f("u_View", view);
+
+    //glm::mat4 proj2 = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    shader.SetUniformMat4f("u_Proj", proj);
+
+    glm::vec4 temp = proj * view * model * glm::vec4(0.5f, 0.5f, -1, 1);
+    temp /= temp.a;
 
     Texture texture("res/textures/ChernoLogo2.png");
     texture.Bind();
@@ -103,6 +161,8 @@ int main(void)
     float green = 0.2f;
     float increment2 = 0.01f;
 
+    glEnable(GL_DEPTH_TEST);
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -112,7 +172,10 @@ int main(void)
         shader.Bind();
         shader.SetUniform4f("u_Color", red, green, 0.8f, 1.0f);
 
-        renderer.Draw(va, ib, shader);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        shader.SetUniformMat4f("u_Model", model);
+
+        renderer.Draw(va, ib, shader); 
 
         if (red > 1.0f)
             increment = -0.05f;
