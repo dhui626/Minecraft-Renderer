@@ -13,6 +13,7 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Camera.h"
 
 
 int main(void)
@@ -28,7 +29,9 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    int width = 640;
+    int height = 480;
+    window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -95,26 +98,21 @@ int main(void)
     shader.Bind();
     shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
+    // Camera 
+    Camera camera(45.0f, 0.1f, 100.0f, window);
+    camera.OnResize(width, height);
+
     //MVP matrix
     glm::mat4 model(1.0f);
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     shader.SetUniformMat4f("u_Model", model);
 
-    glm::mat4 view(1.0f);
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    view = glm::lookAt(cameraPos, cameraTarget, up);
+    glm::mat4 view = camera.GetView();
     shader.SetUniformMat4f("u_View", view);
 
     //glm::mat4 proj2 = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    glm::mat4 proj = camera.GetProjection();
     shader.SetUniformMat4f("u_Proj", proj);
-
 
 
     Texture texture("res/textures/ChernoLogo2.png");
@@ -143,15 +141,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Press Input */
-        float cameraSpeed = 0.05f; // adjust accordingly
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            cameraPos += cameraSpeed * cameraFront;
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            cameraPos -= cameraSpeed * cameraFront;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            cameraPos -= cameraSpeed * cameraRight;
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            cameraPos += cameraSpeed * cameraRight;
+        camera.OnUpdate(1.0f / 30.0f); // 30hz
 
         /* Render here */
         renderer.Clear();
@@ -159,11 +149,14 @@ int main(void)
         shader.Bind();
         shader.SetUniform4f("u_Color", red, green, 0.8f, 1.0f);
 
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-        shader.SetUniformMat4f("u_View", view);
-
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.2f), glm::vec3(0.5f, 1.0f, 0.0f));
         shader.SetUniformMat4f("u_Model", model);
+
+        view = camera.GetView();
+        shader.SetUniformMat4f("u_View", view);
+
+        proj = camera.GetProjection();
+        shader.SetUniformMat4f("u_Proj", proj);
 
         renderer.Draw(va, ib, shader); 
 
