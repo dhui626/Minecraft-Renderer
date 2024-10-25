@@ -18,6 +18,18 @@ Texture::~Texture()
 	GLCall(glDeleteTextures(1, &m_RendererID));
 }
 
+float positions[] = {
+	// vertex        //coords
+	0.0f, 0.0f, 0.0f,  0.0f, 0.0f, // 0
+	1.0f, 0.0f, 0.0f,  1.0f, 0.0f, // 1
+	1.0f, 1.0f, 0.0f,  1.0f, 1.0f, // 2
+	0.0f, 1.0f, 0.0f,  0.0f, 1.0f, // 3
+	0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // 4
+	1.0f, 0.0f, 1.0f,  1.0f, 0.0f, // 5
+	1.0f, 1.0f, 1.0f,  1.0f, 1.0f, // 6
+	0.0f, 1.0f, 1.0f,  0.0f, 1.0f  // 7
+};
+
 void Texture::AddTexture(const std::string& path, unsigned int slot)
 {
 	m_FilePath.push_back(path);
@@ -34,8 +46,8 @@ void Texture::BuildTexture(unsigned int slot)
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
