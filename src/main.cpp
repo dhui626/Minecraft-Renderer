@@ -49,37 +49,37 @@ int main(void)
     std::cout << "OpenGL Version:\t" << glGetString(GL_VERSION) << std::endl;
 
     float positions[] = {
-        // vertex          //coords
+        // Vertex          // Normal           // Coords
         // 前面 (面 0)
-        0.0f, 0.0f, 0.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 0
-        1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
-        1.0f, 1.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
-        0.0f, 1.0f, 0.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 3
+        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 0
+        1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
+        1.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
+        0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 3
         // 后面 (面 1)
-        0.0f, 0.0f, 1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
-        1.0f, 0.0f, 1.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 5
-        1.0f, 1.0f, 1.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 6
-        0.0f, 1.0f, 1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
+        0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 4
+        1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 5
+        1.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 6
+        0.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 7
         // 左侧 (面 2)
-        0.0f, 0.0f, 1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
-        0.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 0
-        0.0f, 1.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 3
-        0.0f, 1.0f, 1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
+        0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
+        0.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 0
+        0.0f, 1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 3
+        0.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
         // 右侧 (面 3)
-        1.0f, 0.0f, 1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 5
-        1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
-        1.0f, 1.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
-        1.0f, 1.0f, 1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 6
+        1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 5
+        1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 1
+        1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 2
+        1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 6
         // 上面 (面 4)
-        0.0f, 1.0f, 1.0f,  11.0f / 64.0f, 14.0f / 32.0f, // 7
-        1.0f, 1.0f, 1.0f,  12.0f / 64.0f, 14.0f / 32.0f, // 6
-        1.0f, 1.0f, 0.0f,  12.0f / 64.0f, 15.0f / 32.0f, // 2
-        0.0f, 1.0f, 0.0f,  11.0f / 64.0f, 15.0f / 32.0f, // 3
+        0.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 14.0f / 32.0f, // 7
+        1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 14.0f / 32.0f, // 6
+        1.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 15.0f / 32.0f, // 2
+        0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 15.0f / 32.0f, // 3
         // 下面 (面 5)
-        0.0f, 0.0f, 1.0f,  21.0f / 64.0f, 18.0f / 32.0f, // 4
-        1.0f, 0.0f, 1.0f,  22.0f / 64.0f, 18.0f / 32.0f, // 5
-        1.0f, 0.0f, 0.0f,  22.0f / 64.0f, 19.0f / 32.0f, // 1
-        0.0f, 0.0f, 0.0f,  21.0f / 64.0f, 19.0f / 32.0f  // 0
+        0.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 18.0f / 32.0f, // 4
+        1.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 18.0f / 32.0f, // 5
+        1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 19.0f / 32.0f, // 1
+        0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 19.0f / 32.0f  // 0
     };
 
     unsigned int indices[] = {
@@ -118,14 +118,13 @@ int main(void)
 
     VertexBufferLayout layout;
     layout.Push<float>(3);
+    layout.Push<float>(3);
     layout.Push<float>(2);
-    //layout.Push<float>(3);
     va.AddBuffer(vb, layout);
 
     //Load shader file
     Shader shader("res/shaders/Basic.shader");
     shader.Bind();
-    shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
     // Camera 
     Camera camera(45.0f, 0.1f, 100.0f, window);
@@ -142,12 +141,24 @@ int main(void)
     //glm::mat4 proj2 = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
     glm::mat4 proj = camera.GetProjection();
     shader.SetUniformMat4f("u_Proj", proj);
+    
+    // Uniforms
+    glm::vec3 lightPos{ 2.0f,3.0f,1.0f };
+    shader.SetUniform3f("u_LightPos", lightPos);
+    float lightIntensity = 10.0f;
+    shader.SetUniform1f("u_LightIntensity", lightIntensity);
+    shader.SetUniform3f("u_CameraPos", camera.GetPosition());
+    float Kd = 1.0f; //diffuse K
+    shader.SetUniform1f("u_Kd", Kd);
+    float Ks = 1.0f; //specular K
+    shader.SetUniform1f("u_Ks", Ks);
 
-
+    // Texture
     Texture texture("res/textures/1.20.2_minecraft_textures_atlas_blocks_0.png");
     texture.Bind();
     shader.SetUniform1i("u_Texture", 0);
 
+    // Unbind
     shader.Unbind();
     va.Unbind();
     vb.Unbind();
@@ -168,8 +179,8 @@ int main(void)
 
         shader.Bind();
 
-        glm::mat4 model(1.0);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        //Uniforms
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(0.1f), glm::vec3(0.5f, 1.0f, 0.0f));
         shader.SetUniformMat4f("u_Model", model);
 
         view = camera.GetView();
@@ -177,6 +188,8 @@ int main(void)
 
         proj = camera.GetProjection();
         shader.SetUniformMat4f("u_Proj", proj);
+
+        shader.SetUniform3f("u_CameraPos", camera.GetPosition());
 
         renderer.Draw(va, ib, shader); 
 
