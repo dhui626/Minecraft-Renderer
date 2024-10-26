@@ -19,7 +19,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Camera.h"
-
+#include "Chunk.h"
 
 int main(void)
 {
@@ -116,7 +116,7 @@ int main(void)
 
     //GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //GLCall(glEnable(GL_BLEND));
-
+    
     {
         // vertex array
         VertexArray va;
@@ -178,7 +178,11 @@ int main(void)
         vb.Unbind();
         ib.Unbind();
 
-        Renderer renderer;
+        Renderer renderer(&va, &ib, &shader);
+
+        // Generate Terrains
+        Chunk chunk(16, &renderer);
+        chunk.Generate();
 
         glEnable(GL_DEPTH_TEST);
 
@@ -205,7 +209,9 @@ int main(void)
 
             shader.SetUniform3f("u_CameraPos", camera.GetPosition());
 
-            renderer.Draw(va, ib, shader);
+            renderer.Draw();
+
+            chunk.Render();
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();

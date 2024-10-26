@@ -17,16 +17,35 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
+Renderer::Renderer(VertexArray* va, IndexBuffer* ib, Shader* shader)
+    :m_va(va), m_ib(ib), m_shader(shader)
+{
+}
+
 void Renderer::Clear() const
 {
-    //glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+void Renderer::Draw() const
 {
-    shader.Bind();
-    va.Bind();
-    ib.Bind();
-    GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+    m_shader->Bind();
+    m_va->Bind();
+    m_ib->Bind();
+    GLCall(glDrawElements(GL_TRIANGLES, m_ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+}
+
+VertexArray* Renderer::GetVAO() const
+{
+    return m_va;
+}
+
+IndexBuffer* Renderer::GetIBO() const
+{
+    return m_ib;
+}
+
+Shader* Renderer::GetShader() const
+{
+    return m_shader;
 }

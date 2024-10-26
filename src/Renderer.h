@@ -16,11 +16,19 @@ bool GLLogCall(const char* function, const char* file, int line);
 class Renderer
 {
 public:
+	Renderer(VertexArray* va, IndexBuffer* ib, Shader* shader);
+
 	void Clear() const;
-	void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+	void Draw() const;
+	
+	VertexArray* GetVAO() const;
+	IndexBuffer* GetIBO() const;
+	Shader* GetShader() const;
 
 private:
-
+	VertexArray* m_va;
+	IndexBuffer* m_ib;
+	Shader* m_shader;
 };
 
 
