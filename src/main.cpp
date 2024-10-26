@@ -21,6 +21,38 @@
 #include "Camera.h"
 #include "Chunk.h"
 
+
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -142,10 +174,10 @@ int main(void)
         Camera camera(45.0f, 0.1f, 100.0f, window);
         camera.OnResize(width, height);
         
-
         //MVP matrix
         glm::mat4 model(1.0f);
-        glm::vec3 translation{ 0.0f, 16.0f, 0.0f };
+        //glm::vec3 translation{ 0.0f, 16.0f, 0.0f };
+        glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
         model = glm::translate(model, translation);
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("u_Model", model);
@@ -158,9 +190,9 @@ int main(void)
         shader.SetUniformMat4f("u_Proj", proj);
 
         // Uniforms
-        //glm::vec3 lightPos{ 200.0f,300.0f,100.0f };
+        glm::vec3 lightPos{ 20.0f,30.0f,20.0f };
         // This cube is light source
-        glm::vec3 lightPos = translation;
+        //glm::vec3 lightPos = translation;
         shader.SetUniform3f("u_LightPos", lightPos);
         float lightIntensity = 30.0f;
         shader.SetUniform1f("u_LightIntensity", lightIntensity);
@@ -181,7 +213,19 @@ int main(void)
         vb.Unbind();
         ib.Unbind();
 
+        Shader shadowShader("res/shaders/Shadow.shader");
+        shadowShader.Bind();
+        // Uniforms
+        float near_plane = 0.1f, far_plane = 100.5f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        shadowShader.SetUniformMat4f("u_Model", model);
+        shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+        shadowShader.Unbind();
+
         Renderer renderer(&va, &ib, &shader);
+        renderer.GenerateDepthMap();
 
         // Generate Terrains
         Chunk chunk(16, &renderer);
@@ -198,7 +242,26 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
+            // ShadowMap : First pass
+            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+            glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
+            glClear(GL_DEPTH_BUFFER_BIT);
+            shadowShader.Bind();
+            renderer.ChangeShader(&shadowShader);
+            texture.Bind(0);
+            //renderer.Draw();
+            chunk.Render();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            // ShadowMap : Second pass
+            glViewport(0, 0, width, height);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             shader.Bind();
+            renderer.ChangeShader(&shader);
+            texture.Bind(0);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, renderer.GetDepthMap());
+            shader.SetUniform1i("u_ShadowMap", 1);
 
             //Uniforms
             model = glm::translate(glm::mat4{ 1.0 }, translation);
@@ -211,12 +274,22 @@ int main(void)
             shader.SetUniformMat4f("u_Proj", proj);
 
             shader.SetUniform3f("u_CameraPos", camera.GetPosition());
-            lightPos = translation;
-            shader.SetUniform3f("u_LightPos", lightPos);
+            shader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+            //lightPos = translation;
+            //shader.SetUniform3f("u_LightPos", lightPos);
 
-            renderer.Draw();
-
+            //renderer.Draw();
             chunk.Render();
+
+            // render Depth map to quad for visual debugging
+            // ---------------------------------------------
+            Shader debugDepthQuad("res/shaders/Depth.shader");
+            debugDepthQuad.Bind();
+            debugDepthQuad.SetUniform1f("near_plane", near_plane);
+            debugDepthQuad.SetUniform1f("far_plane", far_plane);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, renderer.GetDepthMap());
+            //renderQuad();
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();

@@ -9,10 +9,12 @@ layout(location = 2) in vec2 texCoord;
 uniform mat4 u_Model;
 uniform mat4 u_View;
 uniform mat4 u_Proj;
+uniform mat4 u_LightPV;
 
 out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
+out vec4 v_PositionFromLight;
 
 void main()
 {
@@ -20,22 +22,40 @@ void main()
     v_Normal =  (u_Model * vec4(normal, 0.0)).xyz;
     gl_Position = u_Proj * u_View * u_Model * vec4(position.xyz, 1);
     v_TexCoord = texCoord;
+    v_PositionFromLight = u_LightPV * u_Model * vec4(position, 1.0);
 };
 
 
 #shader fragment
 #version 330 core
-
+// Phong Related
 in vec2 v_TexCoord;
 in vec3 v_Normal;
 in vec3 v_FragPos;
-
 uniform sampler2D u_Texture;
 uniform vec3 u_LightPos;
 uniform float u_LightIntensity;
 uniform vec3 u_CameraPos;
 uniform float u_Kd;
 uniform float u_Ks;
+
+// Shadow Map Related
+in vec4 v_PositionFromLight;
+uniform sampler2D u_ShadowMap;
+
+#define EPS 1e-3
+
+float useShadowMap(sampler2D shadowMap, vec4 shadowCoord){
+
+  // 获取阴影图中的深度值
+  float shadowMapDepth = texture2D(shadowMap, shadowCoord.xy).x;
+  float depth = shadowCoord.z;
+
+  // 计算可见性，添加一个小的偏移量以避免 z-fighting
+  float visibility = depth - EPS > shadowMapDepth ? 0.0 : 1.0;
+
+  return visibility;
+}
 
 void main()
 {
@@ -49,13 +69,18 @@ void main()
     vec3 normal = normalize(v_Normal);
     float diff = max(dot(lightDir, normal), 0.0);
     float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos); // Point light
-    // float light_atten_coff = u_LightIntensity ; // Sun light
+    //float light_atten_coff = u_LightIntensity ; // Sun light
     vec3 diffuse =  diff * light_atten_coff * color;
-
+    // specular term
     vec3 viewDir = normalize(u_CameraPos - v_FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
-    gl_FragColor = vec4(pow(ambient + diffuse + specular, vec3(1.0/2.2)), 1.0);
+    // visibility
+    vec3 shadowCoord = v_PositionFromLight.xyz / v_PositionFromLight.w;
+    shadowCoord = (shadowCoord + 1.0) * 0.5; // NDC coord
+    float visibility = useShadowMap(u_ShadowMap, vec4(shadowCoord, 1.0));
+
+    gl_FragColor = vec4(pow(ambient + visibility * (diffuse + specular), vec3(1.0/2.2)), 1.0);
 };

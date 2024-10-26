@@ -155,6 +155,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\Depth.shader" />
+    <None Include="res\shaders\Shadow.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
