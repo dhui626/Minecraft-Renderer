@@ -16,6 +16,12 @@ Chunk::~Chunk()
 
 glm::uvec3 Chunk::GetXYZ(unsigned int index)
 {
+	/*      y
+            |
+            O -- x
+           /
+          z
+	*/
 	if (m_ChunkSize == 0)
 	{
 		return glm::vec3(0.0f, 0.0f, 0.0f);
@@ -30,12 +36,15 @@ glm::uvec3 Chunk::GetXYZ(unsigned int index)
 
 void Chunk::Generate()
 {
-	// demo
-	for (int z = 0; z < m_ChunkSize; z++)
+	// NOTE: y value is the UP axis
+	unsigned int height = 3;
+	for (unsigned int z = 0; z < m_ChunkSize; z++)
 	{
-		for (int y = 0; y < m_ChunkSize; y++)
+		for (unsigned int x = 0; x < m_ChunkSize; x++)
 		{
-			for (int x = 0; x < m_ChunkSize; x++)
+			unsigned int delta = rand() % 3 - 1;  //-1, 0, 1
+			height = glm::max(glm::min(height + delta, m_ChunkSize), (unsigned int)1);
+			for (unsigned int y = 0; y < height; y++)
 			{
 				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = 1;
 			}

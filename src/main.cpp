@@ -141,10 +141,11 @@ int main(void)
         // Camera 
         Camera camera(45.0f, 0.1f, 100.0f, window);
         camera.OnResize(width, height);
+        
 
         //MVP matrix
         glm::mat4 model(1.0f);
-        glm::vec3 translation{ 1.0f, 1.0f, 1.0f };
+        glm::vec3 translation{ 0.0f, 16.0f, 0.0f };
         model = glm::translate(model, translation);
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         shader.SetUniformMat4f("u_Model", model);
@@ -157,9 +158,11 @@ int main(void)
         shader.SetUniformMat4f("u_Proj", proj);
 
         // Uniforms
-        glm::vec3 lightPos{ 2.0f,3.0f,1.0f };
+        //glm::vec3 lightPos{ 200.0f,300.0f,100.0f };
+        // This cube is light source
+        glm::vec3 lightPos = translation;
         shader.SetUniform3f("u_LightPos", lightPos);
-        float lightIntensity = 10.0f;
+        float lightIntensity = 30.0f;
         shader.SetUniform1f("u_LightIntensity", lightIntensity);
         shader.SetUniform3f("u_CameraPos", camera.GetPosition());
         float Kd = 1.0f; //diffuse K
@@ -208,6 +211,8 @@ int main(void)
             shader.SetUniformMat4f("u_Proj", proj);
 
             shader.SetUniform3f("u_CameraPos", camera.GetPosition());
+            lightPos = translation;
+            shader.SetUniform3f("u_LightPos", lightPos);
 
             renderer.Draw();
 
@@ -218,8 +223,9 @@ int main(void)
             ImGui::NewFrame();
             {
                 ImGui::Begin("Model Configs");
-                ImGui::DragFloat3("Model Position", glm::value_ptr(translation), 0.1f);
-                ImGui::Text("This is some useful text.");
+                ImGui::DragFloat3("Light Position", glm::value_ptr(translation), 0.1f);
+                ImGui::Text("Camera Position: (%f, %f, %f)", 
+                    camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
                 ImGui::End();
             }
             ImGui::Render();

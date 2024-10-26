@@ -48,12 +48,13 @@ void main()
     vec3 lightDir = normalize(u_LightPos - v_FragPos);
     vec3 normal = normalize(v_Normal);
     float diff = max(dot(lightDir, normal), 0.0);
-    float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos);
+    float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos); // Point light
+    // float light_atten_coff = u_LightIntensity ; // Sun light
     vec3 diffuse =  diff * light_atten_coff * color;
 
     vec3 viewDir = normalize(u_CameraPos - v_FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 10.0);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
     gl_FragColor = vec4(pow(ambient + diffuse + specular, vec3(1.0/2.2)), 1.0);
