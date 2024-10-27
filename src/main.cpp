@@ -190,7 +190,7 @@ int main(void)
         shader.SetUniformMat4f("u_Proj", proj);
 
         // Uniforms
-        glm::vec3 lightPos{ 20.0f,30.0f,20.0f };
+        glm::vec3 lightPos{ 20.0f,40.0f,20.0f };
         // This cube is light source
         //glm::vec3 lightPos = translation;
         shader.SetUniform3f("u_LightPos", lightPos);
@@ -216,8 +216,8 @@ int main(void)
         Shader shadowShader("res/shaders/Shadow.shader");
         shadowShader.Bind();
         // Uniforms
-        float near_plane = 0.1f, far_plane = 100.5f;
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        float near_plane = 0.1f, far_plane = 50.0f;
+        glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         shadowShader.SetUniformMat4f("u_Model", model);
@@ -228,8 +228,8 @@ int main(void)
         renderer.GenerateDepthMap();
 
         // Generate Terrains
-        Chunk chunk(16, &renderer);
-        chunk.Generate();
+        Chunk chunk(32, &renderer);
+        chunk.Generate(166615615154);
 
         glEnable(GL_DEPTH_TEST);
 
@@ -283,12 +283,12 @@ int main(void)
 
             // render Depth map to quad for visual debugging
             // ---------------------------------------------
-            Shader debugDepthQuad("res/shaders/Depth.shader");
-            debugDepthQuad.Bind();
-            debugDepthQuad.SetUniform1f("near_plane", near_plane);
-            debugDepthQuad.SetUniform1f("far_plane", far_plane);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, renderer.GetDepthMap());
+            //Shader debugDepthQuad("res/shaders/Depth.shader");
+            //debugDepthQuad.Bind();
+            //debugDepthQuad.SetUniform1f("near_plane", near_plane);
+            //debugDepthQuad.SetUniform1f("far_plane", far_plane);
+            //glActiveTexture(GL_TEXTURE0);
+            //glBindTexture(GL_TEXTURE_2D, renderer.GetDepthMap());
             //renderQuad();
 
             ImGui_ImplOpenGL3_NewFrame();

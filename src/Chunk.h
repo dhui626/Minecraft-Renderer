@@ -4,6 +4,24 @@
 
 #include "Renderer.h"
 
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+
+class PerlinNoise {
+public:
+    PerlinNoise(unsigned int seed);
+    double noise(double x, double y);
+private:
+	double fade(double t);
+	double lerp(double a, double b, double t);
+	double grad(int hash, double x, double y);
+
+private:
+    int permutation[512];
+};
+
 class Chunk
 {
 public:
@@ -11,7 +29,8 @@ public:
 	~Chunk();
 
 	glm::uvec3 GetXYZ(unsigned int index);
-	void Generate();
+    std::vector<double> generatePerlinNoise(int n, unsigned int seed);
+	void Generate(unsigned int seed);
 	void Render();
 
 private:
