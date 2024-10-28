@@ -9,6 +9,28 @@
 #include <cstdlib>
 #include <iostream>
 
+// Block Type
+enum class BlockType {
+	Air,
+	Grass,
+	Dirt,
+	Stone,
+	Water,
+	Sand,
+	Wood,
+	UNDIFINED
+};
+
+// Texture Coords of each side
+struct BlockTextureCoordinates {
+	glm::vec2 left;
+	glm::vec2 right;
+	glm::vec2 top;
+	glm::vec2 bottom;
+	glm::vec2 front;
+	glm::vec2 back;
+};
+
 class PerlinNoise {
 public:
     PerlinNoise(unsigned int seed);
@@ -28,17 +50,20 @@ public:
 	Chunk(unsigned int chunkSize);
 	~Chunk();
 
-	glm::uvec3 GetXYZ(unsigned int index);
-    std::vector<double> generatePerlinNoise(int n, unsigned int seed);
+	void Generate(unsigned int seed);
 	std::vector<float> GetVertices() { return m_Vertices; }
 	std::vector<unsigned int> GetIndices() { return m_Indices; }
 
-	void Generate(unsigned int seed);
+private:
+	glm::uvec3 GetXYZ(unsigned int index);
+    std::vector<double> generatePerlinNoise(int n, unsigned int seed);
+	void LoadBlockTextures();
 
 private:
 	unsigned int m_ChunkSize;
-	std::vector<bool> data;
+	std::vector<unsigned int> data;
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
+	std::vector<BlockTextureCoordinates> m_BlockTypes;
 };

@@ -5,7 +5,7 @@ Chunk::Chunk(unsigned int chunkSize)
 {
 	m_ChunkSize = chunkSize;
 	data.resize(chunkSize * chunkSize * chunkSize);
-	
+    LoadBlockTextures();
 }
 
 Chunk::~Chunk()
@@ -39,7 +39,7 @@ std::vector<double> Chunk::generatePerlinNoise(int n, unsigned int seed)
 	std::vector<double> noiseMap(n * n);
 
 	double frequency = 0.8; // 初始频率
-	double amplitude = 0.5; // 初始振幅
+	double amplitude = 1.0; // 初始振幅
 	double persistence = 0.3; // 振幅衰减
 	double maxValue = 0.0; // 用于归一化最大的值
 
@@ -63,22 +63,64 @@ std::vector<double> Chunk::generatePerlinNoise(int n, unsigned int seed)
 	return noiseMap;
 }
 
+void Chunk::LoadBlockTextures()
+{
+    constexpr int BlockTypeCount = static_cast<int>(BlockType::UNDIFINED);
+    m_BlockTypes.resize(BlockTypeCount);
+    for (int i = 0; i < BlockTypeCount; i++)
+    {
+        switch (i)
+        {
+        case (int)BlockType::Grass:
+            m_BlockTypes[i].left   = glm::vec2(25.0f / 64.0f, 23.0f / 32.0f);
+            m_BlockTypes[i].right  = glm::vec2(25.0f / 64.0f, 23.0f / 32.0f);
+            m_BlockTypes[i].top    = glm::vec2(11.0f / 64.0f, 14.0f / 32.0f);
+            m_BlockTypes[i].bottom = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].front  = glm::vec2(25.0f / 64.0f, 23.0f / 32.0f);
+            m_BlockTypes[i].back   = glm::vec2(25.0f / 64.0f, 23.0f / 32.0f);
+            break;
+        case (int)BlockType::Dirt:
+            m_BlockTypes[i].left   = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].right  = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].top    = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].bottom = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].front  = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            m_BlockTypes[i].back   = glm::vec2(21.0f / 64.0f, 18.0f / 32.0f);
+            break;
+        case (int)BlockType::Stone:
+            m_BlockTypes[i].left   = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            m_BlockTypes[i].right  = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            m_BlockTypes[i].top    = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            m_BlockTypes[i].bottom = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            m_BlockTypes[i].front  = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            m_BlockTypes[i].back   = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 void Chunk::Generate(unsigned int seed)
 {
 	// NOTE: y value is the UP axis
 	std::vector<double> noiseMap = generatePerlinNoise(m_ChunkSize, seed);
 
+    // Generating Step
 	unsigned int height = 0;
 	for (unsigned int z = 0; z < m_ChunkSize; z++)
 	{
 		for (unsigned int x = 0; x < m_ChunkSize; x++)
 		{
 			height = (int)(noiseMap[x + z * m_ChunkSize] * m_ChunkSize);
-			for (unsigned int y = 0; y < height; y++)
-			{
-				// block data
-				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = 1;
-			}
+            
+            // block data
+            for (unsigned int y = 0; y < height / 2; y++)
+                data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Stone;
+			for (unsigned int y = height / 2; y < height - 1; y++)
+				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Dirt;
+            for (unsigned int y = height - 1; y < height; y++)
+                data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Grass;
 		}
 	}
 
@@ -95,13 +137,14 @@ void Chunk::Generate(unsigned int seed)
 			{
 				// 当前方块的位置
 				glm::vec3 position(x, y, z);
-                float textureCoordX = 25.0f / 64.0f;
-                float textureCoordY = 23.0f / 32.0f;
+                unsigned int blockTypeID = data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize];
 
                 // 检查六个面
                 // 底面
                 if (y == 0 || data[x + (y - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加底面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].bottom.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].bottom.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x, position.y, position.z,  // 底左下
                         0.0f, -1.0f, 0.0f,                     // 法向量
@@ -124,6 +167,8 @@ void Chunk::Generate(unsigned int seed)
                 // 顶面
                 if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加顶面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].top.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].top.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x, position.y + 1.0f, position.z,  // 顶左下
                         0.0f, 1.0f, 0.0f,                       // 法向量
@@ -146,6 +191,8 @@ void Chunk::Generate(unsigned int seed)
                 // 检查相邻方块以决定侧面
                 if (x == 0 || data[(x - 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加左面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].left.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].left.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x, position.y, position.z,  // 左面左下
                         -1.0f, 0.0f, 0.0f,                     // 法向量
@@ -153,7 +200,7 @@ void Chunk::Generate(unsigned int seed)
 
                         position.x, position.y, position.z + 1.0f,  // 左面左上
                         -1.0f, 0.0f, 0.0f,                         // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
 
                         position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
                         -1.0f, 0.0f, 0.0f,                               // 法向量
@@ -161,12 +208,14 @@ void Chunk::Generate(unsigned int seed)
 
                         position.x, position.y + 1.0f, position.z,  // 左面右下
                         - 1.0f, 0.0f, 0.0f,                           // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY
+                        textureCoordX, textureCoordY + 1.0f / 32.0f
                         });
                 }
 
                 if (x == m_ChunkSize - 1 || data[(x + 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加右面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].right.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].right.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x + 1.0f, position.y, position.z,  // 右面左下
                         1.0f, 0.0f, 0.0f,                             // 法向量
@@ -174,7 +223,7 @@ void Chunk::Generate(unsigned int seed)
 
                         position.x + 1.0f, position.y, position.z + 1.0f,  // 右面左上
                         1.0f, 0.0f, 0.0f,                                   // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
 
                         position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 右面右上
                         1.0f, 0.0f, 0.0f,                                         // 法向量
@@ -182,12 +231,14 @@ void Chunk::Generate(unsigned int seed)
 
                         position.x + 1.0f, position.y + 1.0f, position.z,  // 右面右下
                         1.0f, 0.0f, 0.0f,                                   // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY
+                        textureCoordX, textureCoordY + 1.0f / 32.0f
                         });
                 }
 
                 if (z == 0 || data[x + y * m_ChunkSize + (z - 1) * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加前面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].front.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].front.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x, position.y, position.z,  // 前面左下
                         0.0f, 0.0f, -1.0f,                     // 法向量
@@ -209,6 +260,8 @@ void Chunk::Generate(unsigned int seed)
 
                 if (z == m_ChunkSize - 1 || data[x + y * m_ChunkSize + (z + 1) * m_ChunkSize * m_ChunkSize] == 0) {
                     // 添加后面四个顶点
+                    float textureCoordX = m_BlockTypes[blockTypeID].back.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].back.y;
                     m_Vertices.insert(m_Vertices.end(), {
                         position.x, position.y, position.z + 1.0f,  // 后面左下
                         0.0f, 0.0f, 1.0f,                             // 法向量
@@ -242,23 +295,6 @@ void Chunk::Generate(unsigned int seed)
         m_Indices.push_back(i + 3);
     }
 }
-
-//void Chunk::Render()
-//{
-//	// demo
-//	for (unsigned int i = 0; i < data.size(); i++)
-//	{
-//		glm::uvec3 xyz = GetXYZ(i);
-//		glm::vec3 translation = xyz;
-//		if (data[i] != false) // has block
-//		{
-//			glm::mat4 model = glm::translate(glm::mat4{ 1.0 }, translation);
-//			Shader* shader = m_Renderer->GetShader();
-//			shader->SetUniformMat4f("u_Model", model);
-//			m_Renderer->Draw();
-//		}
-//	}
-//}
 
 PerlinNoise::PerlinNoise(unsigned int seed)
 {

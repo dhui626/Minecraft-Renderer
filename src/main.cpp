@@ -21,6 +21,8 @@
 #include "Camera.h"
 #include "Chunk.h"
 
+float deltaTime = 0.0f;
+float lastFrameTime = 0.0f;
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
@@ -61,9 +63,9 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
     int width = 1280;
@@ -91,66 +93,11 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
-    //float positions[] = {
-    //    // Vertex          // Normal           // Coords
-    //    // 前面 (面 0)
-    //    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 0
-    //    1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
-    //    1.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
-    //    0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 3
-    //    // 后面 (面 1)
-    //    0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 4
-    //    1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 5
-    //    1.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 6
-    //    0.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 7
-    //    // 左侧 (面 2)
-    //    0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
-    //    0.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 0
-    //    0.0f, 1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 3
-    //    0.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
-    //    // 右侧 (面 3)
-    //    1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 5
-    //    1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 1
-    //    1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 2
-    //    1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 6
-    //    // 上面 (面 4)
-    //    0.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 14.0f / 32.0f, // 7
-    //    1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 14.0f / 32.0f, // 6
-    //    1.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 15.0f / 32.0f, // 2
-    //    0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 15.0f / 32.0f, // 3
-    //    // 下面 (面 5)
-    //    0.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 18.0f / 32.0f, // 4
-    //    1.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 18.0f / 32.0f, // 5
-    //    1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 19.0f / 32.0f, // 1
-    //    0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 19.0f / 32.0f  // 0
-    //};
-
-    //unsigned int indices[] = {
-    //    // 前面
-    //    0, 1, 2,
-    //    2, 3, 0,
-    //    // 后面
-    //    4, 5, 6,
-    //    6, 7, 4,
-    //    // 左侧
-    //    8, 9, 10,
-    //    10, 11, 8,
-    //    // 右侧
-    //    12, 13, 14,
-    //    14, 15, 12,
-    //    // 上面
-    //    16, 17, 18,
-    //    18, 19, 16,
-    //    // 下面
-    //    20, 21, 22,
-    //    22, 23, 20
-    //};
-
     //GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //GLCall(glEnable(GL_BLEND));
     
     // Generate Terrains
-    Chunk chunk(128);
+    Chunk chunk(32);
     chunk.Generate(166615615154);
     std::vector<float> vtx = chunk.GetVertices();
     std::vector<unsigned int> idx = chunk.GetIndices();
@@ -239,7 +186,10 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             /* Press Input */
-            camera.OnUpdate(1.0f / 30.0f); // 30hz
+            camera.OnUpdate(1.0f / 60.0f); // 60hz
+            float currentTime = static_cast<float>(glfwGetTime());
+            deltaTime = currentTime - lastFrameTime;
+            lastFrameTime = currentTime;
 
             /* Render here */
             renderer.Clear();
@@ -301,6 +251,7 @@ int main(void)
                 ImGui::DragFloat3("Light Position", glm::value_ptr(translation), 0.1f);
                 ImGui::Text("Camera Position: (%f, %f, %f)", 
                     camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+                ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
                 ImGui::End();
             }
             ImGui::Render();
