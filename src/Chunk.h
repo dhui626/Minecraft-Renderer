@@ -25,16 +25,20 @@ private:
 class Chunk
 {
 public:
-	Chunk(unsigned int chunkSize, Renderer* renderer);
+	Chunk(unsigned int chunkSize);
 	~Chunk();
 
 	glm::uvec3 GetXYZ(unsigned int index);
     std::vector<double> generatePerlinNoise(int n, unsigned int seed);
+	std::vector<float> GetVertices() { return m_Vertices; }
+	std::vector<unsigned int> GetIndices() { return m_Indices; }
+
 	void Generate(unsigned int seed);
-	void Render();
 
 private:
 	unsigned int m_ChunkSize;
 	std::vector<bool> data;
-	Renderer* m_Renderer;
+
+	std::vector<float> m_Vertices;
+	std::vector<unsigned int> m_Indices;
 };

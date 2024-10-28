@@ -1,8 +1,7 @@
 #include "Chunk.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-Chunk::Chunk(unsigned int chunkSize, Renderer* renderer)
-	:m_Renderer(renderer)
+Chunk::Chunk(unsigned int chunkSize)
 {
 	m_ChunkSize = chunkSize;
 	data.resize(chunkSize * chunkSize * chunkSize);
@@ -69,7 +68,7 @@ void Chunk::Generate(unsigned int seed)
 	// NOTE: y value is the UP axis
 	std::vector<double> noiseMap = generatePerlinNoise(m_ChunkSize, seed);
 
-	unsigned int height = 3;
+	unsigned int height = 0;
 	for (unsigned int z = 0; z < m_ChunkSize; z++)
 	{
 		for (unsigned int x = 0; x < m_ChunkSize; x++)
@@ -77,29 +76,189 @@ void Chunk::Generate(unsigned int seed)
 			height = (int)(noiseMap[x + z * m_ChunkSize] * m_ChunkSize);
 			for (unsigned int y = 0; y < height; y++)
 			{
+				// block data
 				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = 1;
 			}
 		}
 	}
 
-}
+	m_Vertices.clear();
+	m_Indices.clear();
 
-void Chunk::Render()
-{
-	// demo
-	for (unsigned int i = 0; i < data.size(); i++)
+	// Rendering Optimize : BATCH RENDERING
+	for (unsigned int z = 0; z < m_ChunkSize; z++)
 	{
-		glm::uvec3 xyz = GetXYZ(i);
-		glm::vec3 translation = xyz;
-		if (data[i] != false) // has block
+		for (unsigned int x = 0; x < m_ChunkSize; x++)
 		{
-			glm::mat4 model = glm::translate(glm::mat4{ 1.0 }, translation);
-			Shader* shader = m_Renderer->GetShader();
-			shader->SetUniformMat4f("u_Model", model);
-			m_Renderer->Draw();
+			height = (int)(noiseMap[x + z * m_ChunkSize] * m_ChunkSize);
+			for (unsigned int y = 0; y < height; y++)
+			{
+				// 当前方块的位置
+				glm::vec3 position(x, y, z);
+                float textureCoordX = 25.0f / 64.0f;
+                float textureCoordY = 23.0f / 32.0f;
+
+                // 检查六个面
+                // 底面
+                if (y == 0 || data[x + (y - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加底面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y, position.z,  // 底左下
+                        0.0f, -1.0f, 0.0f,                     // 法向量
+                        textureCoordX, textureCoordY,         // 纹理坐标
+
+                        position.x + 1.0f, position.y, position.z,  // 底右下
+                        0.0f, -1.0f, 0.0f,                           // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
+
+                        position.x + 1.0f, position.y, position.z + 1.0f,  // 底右上
+                        0.0f, -1.0f, 0.0f,                               // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f, // 纹理坐标
+
+                        position.x, position.y, position.z + 1.0f,  // 底左上
+                        0.0f, -1.0f, 0.0f,                           // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f  // 纹理坐标
+                        });
+                }
+
+                // 顶面
+                if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加顶面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y + 1.0f, position.z,  // 顶左下
+                        0.0f, 1.0f, 0.0f,                       // 法向量
+                        textureCoordX, textureCoordY,          // 纹理坐标
+
+                        position.x + 1.0f, position.y + 1.0f, position.z,  // 顶右下
+                        0.0f, 1.0f, 0.0f,                               // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
+
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 顶右上
+                        0.0f, 1.0f, 0.0f,                                       // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f, // 纹理坐标
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,  // 顶左上
+                        0.0f, 1.0f, 0.0f,                                   // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f // 纹理坐标
+                        });
+                }
+
+                // 检查相邻方块以决定侧面
+                if (x == 0 || data[(x - 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加左面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y, position.z,  // 左面左下
+                        -1.0f, 0.0f, 0.0f,                     // 法向量
+                        textureCoordX, textureCoordY,
+
+                        position.x, position.y, position.z + 1.0f,  // 左面左上
+                        -1.0f, 0.0f, 0.0f,                         // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
+                        -1.0f, 0.0f, 0.0f,                               // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z,  // 左面右下
+                        - 1.0f, 0.0f, 0.0f,                           // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY
+                        });
+                }
+
+                if (x == m_ChunkSize - 1 || data[(x + 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加右面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x + 1.0f, position.y, position.z,  // 右面左下
+                        1.0f, 0.0f, 0.0f,                             // 法向量
+                        textureCoordX, textureCoordY,
+
+                        position.x + 1.0f, position.y, position.z + 1.0f,  // 右面左上
+                        1.0f, 0.0f, 0.0f,                                   // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 右面右上
+                        1.0f, 0.0f, 0.0f,                                         // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z,  // 右面右下
+                        1.0f, 0.0f, 0.0f,                                   // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY
+                        });
+                }
+
+                if (z == 0 || data[x + y * m_ChunkSize + (z - 1) * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加前面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y, position.z,  // 前面左下
+                        0.0f, 0.0f, -1.0f,                     // 法向量
+                        textureCoordX, textureCoordY,
+
+                        position.x + 1.0f, position.y, position.z,  // 前面右下
+                        0.0f, 0.0f, -1.0f,                         // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z,  // 前面右上
+                        0.0f, 0.0f, -1.0f,                                 // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z,  // 前面左上
+                        0.0f, 0.0f, -1.0f,                           // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f
+                        });
+                }
+
+                if (z == m_ChunkSize - 1 || data[x + y * m_ChunkSize + (z + 1) * m_ChunkSize * m_ChunkSize] == 0) {
+                    // 添加后面四个顶点
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y, position.z + 1.0f,  // 后面左下
+                        0.0f, 0.0f, 1.0f,                             // 法向量
+                        textureCoordX, textureCoordY,
+
+                        position.x + 1.0f, position.y, position.z + 1.0f,  // 后面右下
+                        0.0f, 0.0f, 1.0f,                                   // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 后面右上
+                        0.0f, 0.0f, 1.0f,                                       // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,  // 后面左上
+                        0.0f, 0.0f, 1.0f,                                   // 法向量
+                        textureCoordX, textureCoordY + 1.0f / 32.0f
+                        });
+                }
+			}
 		}
 	}
+    // 生成索引（假设每个面有两个三角形）
+    unsigned int vertexCount = m_Vertices.size() / 8; // 每个顶点有 8 个浮点数
+    for (unsigned int i = 0; i < vertexCount; i += 4) {
+        // 假设每个面有四个顶点
+        m_Indices.push_back(i);
+        m_Indices.push_back(i + 1);
+        m_Indices.push_back(i + 2);
+        m_Indices.push_back(i);
+        m_Indices.push_back(i + 2);
+        m_Indices.push_back(i + 3);
+    }
 }
+
+//void Chunk::Render()
+//{
+//	// demo
+//	for (unsigned int i = 0; i < data.size(); i++)
+//	{
+//		glm::uvec3 xyz = GetXYZ(i);
+//		glm::vec3 translation = xyz;
+//		if (data[i] != false) // has block
+//		{
+//			glm::mat4 model = glm::translate(glm::mat4{ 1.0 }, translation);
+//			Shader* shader = m_Renderer->GetShader();
+//			shader->SetUniformMat4f("u_Model", model);
+//			m_Renderer->Draw();
+//		}
+//	}
+//}
 
 PerlinNoise::PerlinNoise(unsigned int seed)
 {

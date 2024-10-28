@@ -91,74 +91,80 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
-    float positions[] = {
-        // Vertex          // Normal           // Coords
-        // 前面 (面 0)
-        0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 0
-        1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
-        1.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
-        0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 3
-        // 后面 (面 1)
-        0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 4
-        1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 5
-        1.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 6
-        0.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 7
-        // 左侧 (面 2)
-        0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
-        0.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 0
-        0.0f, 1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 3
-        0.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
-        // 右侧 (面 3)
-        1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 5
-        1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 1
-        1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 2
-        1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 6
-        // 上面 (面 4)
-        0.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 14.0f / 32.0f, // 7
-        1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 14.0f / 32.0f, // 6
-        1.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 15.0f / 32.0f, // 2
-        0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 15.0f / 32.0f, // 3
-        // 下面 (面 5)
-        0.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 18.0f / 32.0f, // 4
-        1.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 18.0f / 32.0f, // 5
-        1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 19.0f / 32.0f, // 1
-        0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 19.0f / 32.0f  // 0
-    };
+    //float positions[] = {
+    //    // Vertex          // Normal           // Coords
+    //    // 前面 (面 0)
+    //    0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 0
+    //    1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 1
+    //    1.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 2
+    //    0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 3
+    //    // 后面 (面 1)
+    //    0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 4
+    //    1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 5
+    //    1.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 6
+    //    0.0f, 1.0f, 1.0f,  0.0f, 0.0f, 1.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 7
+    //    // 左侧 (面 2)
+    //    0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 23.0f / 32.0f, // 4
+    //    0.0f, 0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 23.0f / 32.0f, // 0
+    //    0.0f, 1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,  26.0f / 64.0f, 24.0f / 32.0f, // 3
+    //    0.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,  25.0f / 64.0f, 24.0f / 32.0f, // 7
+    //    // 右侧 (面 3)
+    //    1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 23.0f / 32.0f, // 5
+    //    1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 23.0f / 32.0f, // 1
+    //    1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f,   26.0f / 64.0f, 24.0f / 32.0f, // 2
+    //    1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f,   25.0f / 64.0f, 24.0f / 32.0f, // 6
+    //    // 上面 (面 4)
+    //    0.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 14.0f / 32.0f, // 7
+    //    1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 14.0f / 32.0f, // 6
+    //    1.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   12.0f / 64.0f, 15.0f / 32.0f, // 2
+    //    0.0f, 1.0f, 0.0f,  0.0f, 1.0f, 0.0f,   11.0f / 64.0f, 15.0f / 32.0f, // 3
+    //    // 下面 (面 5)
+    //    0.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 18.0f / 32.0f, // 4
+    //    1.0f, 0.0f, 1.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 18.0f / 32.0f, // 5
+    //    1.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  22.0f / 64.0f, 19.0f / 32.0f, // 1
+    //    0.0f, 0.0f, 0.0f,  0.0f, -1.0f, 0.0f,  21.0f / 64.0f, 19.0f / 32.0f  // 0
+    //};
 
-    unsigned int indices[] = {
-        // 前面
-        0, 1, 2,
-        2, 3, 0,
-        // 后面
-        4, 5, 6,
-        6, 7, 4,
-        // 左侧
-        8, 9, 10,
-        10, 11, 8,
-        // 右侧
-        12, 13, 14,
-        14, 15, 12,
-        // 上面
-        16, 17, 18,
-        18, 19, 16,
-        // 下面
-        20, 21, 22,
-        22, 23, 20
-    };
+    //unsigned int indices[] = {
+    //    // 前面
+    //    0, 1, 2,
+    //    2, 3, 0,
+    //    // 后面
+    //    4, 5, 6,
+    //    6, 7, 4,
+    //    // 左侧
+    //    8, 9, 10,
+    //    10, 11, 8,
+    //    // 右侧
+    //    12, 13, 14,
+    //    14, 15, 12,
+    //    // 上面
+    //    16, 17, 18,
+    //    18, 19, 16,
+    //    // 下面
+    //    20, 21, 22,
+    //    22, 23, 20
+    //};
 
     //GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //GLCall(glEnable(GL_BLEND));
     
+    // Generate Terrains
+    Chunk chunk(128);
+    chunk.Generate(166615615154);
+    std::vector<float> vtx = chunk.GetVertices();
+    std::vector<unsigned int> idx = chunk.GetIndices();
+   
     {
         // vertex array
         VertexArray va;
         va.Bind();
 
         // vertex buffer
-        VertexBuffer vb(positions, sizeof(positions));
+        VertexBuffer vb(vtx.data(), vtx.size() * sizeof(float));
 
         // index buffer
-        IndexBuffer ib(indices, sizeof(indices) / sizeof(unsigned int));
+        IndexBuffer ib(idx.data(), idx.size());
 
         VertexBufferLayout layout;
         layout.Push<float>(3);
@@ -203,7 +209,7 @@ int main(void)
         shader.SetUniform1f("u_Ks", Ks);
 
         // Texture
-        Texture texture("res/textures/1.20.2_minecraft_textures_atlas_blocks_0.png");
+        Texture texture("res/textures/23w31a_blocks.png-atlas.png");
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0);
 
@@ -227,10 +233,6 @@ int main(void)
         Renderer renderer(&va, &ib, &shader);
         renderer.GenerateDepthMap();
 
-        // Generate Terrains
-        Chunk chunk(32, &renderer);
-        chunk.Generate(166615615154);
-
         glEnable(GL_DEPTH_TEST);
 
         /* Loop until the user closes the window */
@@ -249,8 +251,8 @@ int main(void)
             shadowShader.Bind();
             renderer.ChangeShader(&shadowShader);
             texture.Bind(0);
-            //renderer.Draw();
-            chunk.Render();
+            renderer.Draw();
+            //chunk.Render();
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // ShadowMap : Second pass
@@ -278,8 +280,8 @@ int main(void)
             //lightPos = translation;
             //shader.SetUniform3f("u_LightPos", lightPos);
 
-            //renderer.Draw();
-            chunk.Render();
+            renderer.Draw();
+            //chunk.Render();
 
             // render Depth map to quad for visual debugging
             // ---------------------------------------------
