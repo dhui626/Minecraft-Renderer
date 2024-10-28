@@ -24,9 +24,17 @@
 float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
+struct Settings
+{
+    bool Shadow = true;
+    bool PCF = false;
+    bool PCSS = false;
+};
+
 int main(void)
 {
     GLFWwindow* window;
+    Settings settings;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -100,23 +108,14 @@ int main(void)
         //MVP matrix
         glm::mat4 model(1.0f);
         glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
-        model = glm::translate(model, translation);
-        shader.SetUniformMat4f("u_Model", model);
-
         glm::mat4 view = camera.GetView();
-        shader.SetUniformMat4f("u_View", view);
-
-        //glm::mat4 proj2 = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
         glm::mat4 proj = camera.GetProjection();
-        shader.SetUniformMat4f("u_Proj", proj);
 
         // Uniforms
         glm::vec3 lightPos{ 100.0f,300.0f,200.0f };
         glm::vec3 lightDir{ -1.0f, -3.0f, -2.0f };
-        shader.SetUniform3f("u_LightPos", lightPos);
         float lightIntensity = 3.0f;
         shader.SetUniform1f("u_LightIntensity", lightIntensity);
-        shader.SetUniform3f("u_CameraPos", camera.GetPosition());
         float Kd = 1.0f; //diffuse K
         shader.SetUniform1f("u_Kd", Kd);
         float Ks = 1.0f; //specular K
@@ -161,20 +160,28 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
-            // ShadowMap : First pass
-            glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-            glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
-            glClear(GL_DEPTH_BUFFER_BIT);
-            shadowShader.Bind();
-            renderer.ChangeShader(&shadowShader);
-            // Uniforms
-            lightPos = camera.GetPosition() + glm::vec3(0.0f, 10.0f, 0.0f) + lightDir * glm::vec3(-10.0);
-            lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
-            lightSpaceMatrix = lightProjection * lightView;
-            shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-            texture.Bind(0);
-            renderer.Draw();
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            if (settings.Shadow)
+            {
+                // ShadowMap : First pass
+                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+                glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
+                glClear(GL_DEPTH_BUFFER_BIT);
+                shadowShader.Bind();
+                renderer.ChangeShader(&shadowShader);
+                // Uniforms
+                lightPos = camera.GetPosition() + glm::vec3(0.0f, 10.0f, 0.0f) + lightDir * glm::vec3(-10.0);
+                lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
+                lightSpaceMatrix = lightProjection * lightView;
+                shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                texture.Bind(0);
+                renderer.Draw();
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
+            else {
+                glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
 
             // ShadowMap : Second pass
             glViewport(0, 0, width, height);
@@ -199,6 +206,9 @@ int main(void)
             shader.SetUniform3f("u_CameraPos", camera.GetPosition());
             shader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
             shader.SetUniform3f("u_LightPos", lightPos);
+            shader.SetUniform1i("show_Shadow", settings.Shadow);
+            shader.SetUniform1i("show_PCF", settings.PCF);
+            shader.SetUniform1i("show_PCSS", settings.PCSS);
 
             renderer.Draw();
 
@@ -208,9 +218,22 @@ int main(void)
             {
                 ImGui::Begin("Model Configs");
                 ImGui::DragFloat3("Light Direction", glm::value_ptr(lightDir), 0.1f);
+                ImGui::Checkbox("Shadow    ", &settings.Shadow);
+                if (settings.Shadow)
+                {
+                    ImGui::SameLine();
+                    ImGui::Checkbox("PCF   ", &settings.PCF);
+                    if (settings.PCF)
+                        settings.PCSS = false;
+                    ImGui::SameLine();
+                    ImGui::Checkbox("PCSS", &settings.PCSS);
+                    if (settings.PCSS)
+                        settings.PCF = false;
+                }
                 ImGui::Text("Camera Position: (%f, %f, %f)", 
                     camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
+                ImGui::Text("Rendering Time: %.0f ms", deltaTime * 1000);
                 ImGui::End();
             }
             {
