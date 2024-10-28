@@ -7,8 +7,8 @@
 Camera::Camera(float verticalFOV, float nearClip, float farClip, GLFWwindow* window)
 	: m_VerticalFOV(verticalFOV), m_NearClip(nearClip), m_FarClip(farClip), m_Window(window)
 {
-	m_ForwardDirection = glm::vec3(0, 0, -1);
-	m_Position = glm::vec3(0, 0, 6);
+	m_ForwardDirection = glm::vec3(1, 0, 0);
+	m_Position = glm::vec3(-4, 0, 0);
 	RecalculateView();
 }
 
@@ -98,6 +98,12 @@ void Camera::OnResize(uint32_t width, uint32_t height)
 	m_ViewportHeight = height;
 
 	RecalculateProjection();
+}
+
+void Camera::SetPosition(glm::vec3 pos)
+{
+	m_Position = pos;
+	RecalculateView();
 }
 
 float Camera::GetRotationSpeed()

@@ -68,8 +68,8 @@ void main()
     vec3 lightDir = normalize(u_LightPos - v_FragPos);
     vec3 normal = normalize(v_Normal);
     float diff = max(dot(lightDir, normal), 0.0);
-    float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos); // Point light
-    //float light_atten_coff = u_LightIntensity ; // Sun light
+    // float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos); // Point light
+    float light_atten_coff = u_LightIntensity ; // Sun light
     vec3 diffuse =  diff * light_atten_coff * color;
     // specular term
     vec3 viewDir = normalize(u_CameraPos - v_FragPos);
