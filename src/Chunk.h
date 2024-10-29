@@ -47,7 +47,7 @@ private:
 class Chunk
 {
 public:
-	Chunk(unsigned int chunkSize);
+	Chunk(unsigned int chunkSize, glm::vec3 originPos);
 	~Chunk();
 
 	void Generate(unsigned int seed);
@@ -66,4 +66,7 @@ private:
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
 	std::vector<BlockTextureCoordinates> m_BlockTypes;
+
+	bool m_Generated = false;
+	glm::vec3 m_OriginPos;
 };

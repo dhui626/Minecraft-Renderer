@@ -20,6 +20,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Chunk.h"
+#include "World.h"
 
 float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
@@ -27,7 +28,7 @@ float lastFrameTime = 0.0f;
 struct Settings
 {
     bool Shadow = true;
-    bool PCF = false;
+    bool PCF = true;
     bool PCSS = false;
 };
 
@@ -77,10 +78,14 @@ int main(void)
     //GLCall(glEnable(GL_BLEND));
     
     // Generate Terrains
-    Chunk chunk(32);
-    chunk.Generate(166615615154);
-    std::vector<float> vtx = chunk.GetVertices();
-    std::vector<unsigned int> idx = chunk.GetIndices();
+    //Chunk chunk(32, glm::vec3(11, 11, 16));
+    //chunk.Generate(166615615154);
+    //std::vector<float> vtx = chunk.GetVertices();
+    //std::vector<unsigned int> idx = chunk.GetIndices();
+    World world(32, 2);
+    world.Generate(166615615154);
+    std::vector<float> vtx = world.GetVertices();
+    std::vector<unsigned int> idx = world.GetIndices();
    
     {
         // vertex array
@@ -186,6 +191,8 @@ int main(void)
 
             // ShadowMap : Second pass
             glViewport(0, 0, width, height);
+            glm::vec3 backgroundColor = glm::mix(glm::vec3(0.67f, 0.90f, 0.90f), glm::vec3(1.0f, 0.8f, 0.3f), (glm::normalize(lightDir).y + 1.0f) * 0.5f);
+            glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             shader.Bind();
             renderer.ChangeShader(&shader);

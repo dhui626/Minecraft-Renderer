@@ -1,11 +1,14 @@
 #include "Chunk.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-Chunk::Chunk(unsigned int chunkSize)
+
+Chunk::Chunk(unsigned int chunkSize, glm::vec3 originPos)
 {
 	m_ChunkSize = chunkSize;
 	data.resize(chunkSize * chunkSize * chunkSize);
     LoadBlockTextures();
+    m_OriginPos = originPos;
+    std::cout << m_OriginPos.x << "\t" << m_OriginPos.y << "\t" << m_OriginPos.z <<std::endl;
 }
 
 Chunk::~Chunk()
@@ -38,8 +41,8 @@ std::vector<double> Chunk::generatePerlinNoise(int n, unsigned int seed)
 	PerlinNoise perlin(seed);
 	std::vector<double> noiseMap(n * n);
 
-	double frequency = 0.8; // 初始频率
-	double amplitude = 1.0; // 初始振幅
+	double frequency = 1.0; // 初始频率
+	double amplitude = 2.0; // 初始振幅
 	double persistence = 0.3; // 振幅衰减
 	double maxValue = 0.0; // 用于归一化最大的值
 
@@ -107,20 +110,20 @@ void Chunk::Generate(unsigned int seed)
 	std::vector<double> noiseMap = generatePerlinNoise(m_ChunkSize, seed);
 
     // Generating Step
-	unsigned int height = 0;
-	for (unsigned int z = 0; z < m_ChunkSize; z++)
+	int height = 0;
+	for (int z = 0; z < m_ChunkSize; z++)
 	{
-		for (unsigned int x = 0; x < m_ChunkSize; x++)
+		for (int x = 0; x < m_ChunkSize; x++)
 		{
-			height = (int)(noiseMap[x + z * m_ChunkSize] * m_ChunkSize);
+            height = (int)(pow(noiseMap[x + z * m_ChunkSize], 2.5) * m_ChunkSize);
             
             // block data
-            for (unsigned int y = 0; y < height / 2; y++)
+            for (int y = 0; y < height / 2; y++)
                 data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Stone;
-			for (unsigned int y = height / 2; y < height - 1; y++)
+			for (int y = height / 2; y < height - 1; y++)
 				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Dirt;
-            for (unsigned int y = height - 1; y < height; y++)
-                data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Grass;
+            if (height > 0)
+                data[x + (height - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Grass;
 		}
 	}
 
@@ -128,15 +131,16 @@ void Chunk::Generate(unsigned int seed)
 	m_Indices.clear();
 
 	// Rendering Optimize : BATCH RENDERING
-	for (unsigned int z = 0; z < m_ChunkSize; z++)
+	for (int z = 0; z < m_ChunkSize; z++)
 	{
-		for (unsigned int x = 0; x < m_ChunkSize; x++)
+		for (int x = 0; x < m_ChunkSize; x++)
 		{
-			height = (int)(noiseMap[x + z * m_ChunkSize] * m_ChunkSize);
-			for (unsigned int y = 0; y < height; y++)
+            height = (int)(pow(noiseMap[x + z * m_ChunkSize], 2.5) * m_ChunkSize);
+			for (int y = 0; y < height; y++)
 			{
 				// 当前方块的位置
 				glm::vec3 position(x, y, z);
+                position += m_OriginPos; //offset
                 unsigned int blockTypeID = data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize];
 
                 // 检查六个面
@@ -283,6 +287,7 @@ void Chunk::Generate(unsigned int seed)
 			}
 		}
 	}
+
     // 生成索引（假设每个面有两个三角形）
     unsigned int vertexCount = m_Vertices.size() / 8; // 每个顶点有 8 个浮点数
     for (unsigned int i = 0; i < vertexCount; i += 4) {
@@ -294,6 +299,8 @@ void Chunk::Generate(unsigned int seed)
         m_Indices.push_back(i + 2);
         m_Indices.push_back(i + 3);
     }
+
+    m_Generated = true;
 }
 
 PerlinNoise::PerlinNoise(unsigned int seed)
