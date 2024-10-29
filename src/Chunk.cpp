@@ -8,7 +8,7 @@ Chunk::Chunk(unsigned int chunkSize, glm::vec3 originPos)
 	data.resize(chunkSize * chunkSize * chunkSize);
     LoadBlockTextures();
     m_OriginPos = originPos;
-    std::cout << m_OriginPos.x << "\t" << m_OriginPos.y << "\t" << m_OriginPos.z <<std::endl;
+    std::cout << "Loaded chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
 }
 
 Chunk::~Chunk()

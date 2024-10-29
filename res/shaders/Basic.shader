@@ -92,14 +92,13 @@ void poissonDiskSamples( const in vec2 randomSeed ) {
 
 float useShadowMap(sampler2D shadowMap, vec4 shadowCoord)
 {
-  // 获取阴影图中的深度值
-  float shadowMapDepth = texture2D(shadowMap, shadowCoord.xy).x;
-  float depth = shadowCoord.z;
+    float shadowMapDepth = texture2D(shadowMap, shadowCoord.xy).x;
+    if(abs(shadowMapDepth - 0.0) < EPS) // outside shadow map
+        return 1.0;
+    float depth = shadowCoord.z;
 
-  // 计算可见性，添加一个小的偏移量以避免 z-fighting
-  float visibility = depth - EPS > shadowMapDepth ? 0.0 : 1.0;
-
-  return visibility;
+    float visibility = depth - EPS > shadowMapDepth ? 0.0 : 1.0;
+    return visibility;
 }
 
 float PCF(sampler2D shadowMap, vec4 coords)
@@ -111,6 +110,8 @@ float PCF(sampler2D shadowMap, vec4 coords)
     for(int i = 0; i < PCF_NUM_SAMPLES; i++)
     {
         float sampleDepth = texture2D(shadowMap, coords.xy + poissonDisk[i] * PCF_FILTER_RADIUS).r;
+        if(abs(sampleDepth - 0.0) < EPS) // outside shadow map
+            sampleDepth = 1.0;
         if (depth <= sampleDepth + BIAS)
         {
             visibility += 1.0; // 不在阴影中
@@ -154,6 +155,8 @@ float PCSS(sampler2D shadowMap, vec4 coords){
     for(int i = 0; i < BLOCKER_SEARCH_NUM_SAMPLES; i++)
     {
         float sampleDepth = texture2D(shadowMap, coords.xy + poissonDisk[i] * PCSS_FILTER_RADIUS * penumbraSize).r;
+        if(abs(sampleDepth - 0.0) < EPS) // outside shadow map
+            sampleDepth = 1.0;
         if (depth <= sampleDepth + BIAS) 
         {
             visibility += 1.0; // 不在阴影中

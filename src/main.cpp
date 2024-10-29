@@ -143,7 +143,7 @@ int main(void)
         Shader shadowShader("res/shaders/Shadow.shader");
         shadowShader.Bind();
         // Uniforms
-        float near_plane = 1.0f, far_plane = 100.0f;
+        float near_plane = 0.1f, far_plane = 200.0f;
         glm::mat4 lightProjection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;

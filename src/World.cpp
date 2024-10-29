@@ -66,6 +66,6 @@ void World::Generate(unsigned int seed)
 {
 	for (Chunk* chunkPtr : m_ChunkData)
 	{
-		chunkPtr->Generate(seed);
+		chunkPtr->Generate(seed + (int)chunkPtr);
 	}
 }
