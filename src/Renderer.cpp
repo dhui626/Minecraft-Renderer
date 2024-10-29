@@ -22,6 +22,11 @@ Renderer::Renderer(VertexArray* va, IndexBuffer* ib, Shader* shader)
 {
     m_DepthMap = 0;
     m_DepthMapFBO = 0;
+    glEnable(GL_DEPTH_TEST);
+    // Back Face Culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
 }
 
 void Renderer::Clear() const

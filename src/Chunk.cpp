@@ -146,21 +146,21 @@ void Chunk::Generate(unsigned int seed)
                     float textureCoordX = m_BlockTypes[blockTypeID].bottom.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].bottom.y;
                     m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y, position.z,  // 底左下
-                        0.0f, -1.0f, 0.0f,                     // 法向量
-                        textureCoordX, textureCoordY,         // 纹理坐标
-
                         position.x + 1.0f, position.y, position.z,  // 底右下
                         0.0f, -1.0f, 0.0f,                           // 法向量
                         textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
 
-                        position.x + 1.0f, position.y, position.z + 1.0f,  // 底右上
-                        0.0f, -1.0f, 0.0f,                               // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f, // 纹理坐标
+                        position.x, position.y, position.z,  // 底左下
+                        0.0f, -1.0f, 0.0f,                     // 法向量
+                        textureCoordX, textureCoordY,         // 纹理坐标
 
                         position.x, position.y, position.z + 1.0f,  // 底左上
                         0.0f, -1.0f, 0.0f,                           // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f  // 纹理坐标
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,  // 纹理坐标
+
+                        position.x + 1.0f, position.y, position.z + 1.0f,  // 底右上
+                        0.0f, -1.0f, 0.0f,                               // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f // 纹理坐标
                         });
                 }
 
@@ -194,21 +194,21 @@ void Chunk::Generate(unsigned int seed)
                     float textureCoordX = m_BlockTypes[blockTypeID].left.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].left.y;
                     m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y, position.z,  // 左面左下
-                        -1.0f, 0.0f, 0.0f,                     // 法向量
-                        textureCoordX, textureCoordY,
-
                         position.x, position.y, position.z + 1.0f,  // 左面左上
                         -1.0f, 0.0f, 0.0f,                         // 法向量
                         textureCoordX + 1.0f / 64.0f, textureCoordY,
 
-                        position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
-                        -1.0f, 0.0f, 0.0f,                               // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+                        position.x, position.y, position.z,  // 左面左下
+                        -1.0f, 0.0f, 0.0f,                     // 法向量
+                        textureCoordX, textureCoordY,
 
                         position.x, position.y + 1.0f, position.z,  // 左面右下
                         - 1.0f, 0.0f, 0.0f,                           // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
+                        -1.0f, 0.0f, 0.0f,                               // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
                         });
                 }
 
@@ -263,21 +263,21 @@ void Chunk::Generate(unsigned int seed)
                     float textureCoordX = m_BlockTypes[blockTypeID].back.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].back.y;
                     m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y, position.z + 1.0f,  // 后面左下
-                        0.0f, 0.0f, 1.0f,                             // 法向量
-                        textureCoordX, textureCoordY,
-
                         position.x + 1.0f, position.y, position.z + 1.0f,  // 后面右下
                         0.0f, 0.0f, 1.0f,                                   // 法向量
                         textureCoordX + 1.0f / 64.0f, textureCoordY,
 
-                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 后面右上
-                        0.0f, 0.0f, 1.0f,                                       // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+                        position.x, position.y, position.z + 1.0f,  // 后面左下
+                        0.0f, 0.0f, 1.0f,                             // 法向量
+                        textureCoordX, textureCoordY,
 
                         position.x, position.y + 1.0f, position.z + 1.0f,  // 后面左上
                         0.0f, 0.0f, 1.0f,                                   // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 后面右上
+                        0.0f, 0.0f, 1.0f,                                       // 法向量
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
                         });
                 }
 			}

@@ -67,6 +67,9 @@ int main(void)
     /* ImGui Setup */
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
@@ -145,8 +148,6 @@ int main(void)
 
         Renderer renderer(&va, &ib, &shader);
         renderer.GenerateDepthMap();
-
-        glEnable(GL_DEPTH_TEST);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -243,6 +244,13 @@ int main(void)
             }
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                GLFWwindow* backup_current_context = glfwGetCurrentContext();
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+                glfwMakeContextCurrent(backup_current_context);
+            }
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);

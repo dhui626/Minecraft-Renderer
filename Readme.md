@@ -14,3 +14,7 @@
 
 这些不在项目中包含，需要手动包含或在 vcpkg 中安装。
 
+```powershell
+./vcpkg install glfw3 glew glm imgui[glfw-binding,opengl3-binding,docking-experimental]
+```
+
