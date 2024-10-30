@@ -98,6 +98,26 @@ void Chunk::LoadBlockTextures()
             m_BlockTypes[i].front  = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
             m_BlockTypes[i].back   = glm::vec2(6.0f / 64.0f, 5.0f / 32.0f);
             break;
+        case (int)BlockType::Kusa:
+            m_BlockTypes[i].front = glm::vec2(10.0f / 64.0f, 7.0f / 32.0f);
+            m_BlockTypes[i].back =  glm::vec2(10.0f / 64.0f, 7.0f / 32.0f);
+            break;
+        case (int)BlockType::Daisy:
+            m_BlockTypes[i].front = glm::vec2(29.0f / 64.0f, 13.0f / 32.0f);
+            m_BlockTypes[i].back =  glm::vec2(29.0f / 64.0f, 13.0f / 32.0f);
+            break;
+        case (int)BlockType::Tulip:
+            m_BlockTypes[i].front = glm::vec2(17.0f / 64.0f, 12.0f / 32.0f);
+            m_BlockTypes[i].back =  glm::vec2(17.0f / 64.0f, 12.0f / 32.0f);
+            break;
+        case (int)BlockType::Dandelion:
+            m_BlockTypes[i].front = glm::vec2(18.0f / 64.0f, 28.0f / 32.0f);
+            m_BlockTypes[i].back =  glm::vec2(18.0f / 64.0f, 28.0f / 32.0f);
+            break;
+        case (int)BlockType::Poppy:
+            m_BlockTypes[i].front = glm::vec2(21.0f / 64.0f, 11.0f / 32.0f);
+            m_BlockTypes[i].back =  glm::vec2(21.0f / 64.0f, 11.0f / 32.0f);
+            break;
         default:
             break;
         }
@@ -122,8 +142,18 @@ void Chunk::Generate(unsigned int seed)
                 data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Stone;
 			for (int y = height / 2; y < height - 1; y++)
 				data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Dirt;
+            // The top is Grass Block
             if (height > 0)
                 data[x + (height - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Grass;
+            // Random Kusa
+            if (rand() % 20 == 0 && height != 0 && height <= m_ChunkSize)
+                data[x + height * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Kusa;
+            // Random Flower
+            if (rand() % 50 == 0 && height != 0 && height <= m_ChunkSize)
+            {
+                int flowerTypeNum = (int)BlockType::Grass - (int)BlockType::Daisy;
+                data[x + height * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Kusa + rand() % flowerTypeNum;
+            }
 		}
 	}
 
@@ -136,151 +166,235 @@ void Chunk::Generate(unsigned int seed)
 		for (int x = 0; x < m_ChunkSize; x++)
 		{
             height = (int)(pow(noiseMap[x + z * m_ChunkSize], 2.5) * m_ChunkSize);
-			for (int y = 0; y < height; y++)
+			for (int y = 0; y < m_ChunkSize; y++)
 			{
+                int blockTypeID = data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize];
+                if (blockTypeID == (int)BlockType::Air)
+                    continue;
+
 				// 当前方块的位置
 				glm::vec3 position(x, y, z);
                 position += m_OriginPos; //offset
-                unsigned int blockTypeID = data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize];
 
-                // 检查六个面
-                // 底面
-                if (y == 0 || data[x + (y - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加底面四个顶点
-                    float textureCoordX = m_BlockTypes[blockTypeID].bottom.x;
-                    float textureCoordY = m_BlockTypes[blockTypeID].bottom.y;
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x + 1.0f, position.y, position.z,  // 底右下
-                        0.0f, -1.0f, 0.0f,                           // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
+                if (blockTypeID >= (int)BlockType::Grass) //Block
+                {
+                    // 检查六个面
+                    // 底面
+                    if (y == 0 || data[x + (y - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加底面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].bottom.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].bottom.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x + 1.0f, position.y, position.z,  // 底右下
+                            0.0f, -1.0f, 0.0f,                           // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
 
-                        position.x, position.y, position.z,  // 底左下
-                        0.0f, -1.0f, 0.0f,                     // 法向量
-                        textureCoordX, textureCoordY,         // 纹理坐标
+                            position.x, position.y, position.z,  // 底左下
+                            0.0f, -1.0f, 0.0f,                     // 法向量
+                            textureCoordX, textureCoordY,         // 纹理坐标
 
-                        position.x, position.y, position.z + 1.0f,  // 底左上
-                        0.0f, -1.0f, 0.0f,                           // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,  // 纹理坐标
+                            position.x, position.y, position.z + 1.0f,  // 底左上
+                            0.0f, -1.0f, 0.0f,                           // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f,  // 纹理坐标
 
-                        position.x + 1.0f, position.y, position.z + 1.0f,  // 底右上
-                        0.0f, -1.0f, 0.0f,                               // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f // 纹理坐标
-                        });
+                            position.x + 1.0f, position.y, position.z + 1.0f,  // 底右上
+                            0.0f, -1.0f, 0.0f,                               // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f // 纹理坐标
+                            });
+                    }
+
+                    // 顶面
+                    if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加顶面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].top.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].top.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x, position.y + 1.0f, position.z,  // 顶左下
+                            0.0f, 1.0f, 0.0f,                       // 法向量
+                            textureCoordX, textureCoordY,          // 纹理坐标
+
+                            position.x + 1.0f, position.y + 1.0f, position.z,  // 顶右下
+                            0.0f, 1.0f, 0.0f,                               // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
+
+                            position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 顶右上
+                            0.0f, 1.0f, 0.0f,                                       // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f, // 纹理坐标
+
+                            position.x, position.y + 1.0f, position.z + 1.0f,  // 顶左上
+                            0.0f, 1.0f, 0.0f,                                   // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f // 纹理坐标
+                            });
+                    }
+
+                    // 检查相邻方块以决定侧面
+                    if (x == 0 || data[(x - 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加左面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].left.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].left.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x, position.y, position.z + 1.0f,  // 左面左上
+                            -1.0f, 0.0f, 0.0f,                         // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                            position.x, position.y, position.z,  // 左面左下
+                            -1.0f, 0.0f, 0.0f,                     // 法向量
+                            textureCoordX, textureCoordY,
+
+                            position.x, position.y + 1.0f, position.z,  // 左面右下
+                            - 1.0f, 0.0f, 0.0f,                           // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                            position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
+                            -1.0f, 0.0f, 0.0f,                               // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
+                            });
+                    }
+
+                    if (x == m_ChunkSize - 1 || data[(x + 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加右面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].right.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].right.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x + 1.0f, position.y, position.z,  // 右面左下
+                            1.0f, 0.0f, 0.0f,                             // 法向量
+                            textureCoordX, textureCoordY,
+
+                            position.x + 1.0f, position.y, position.z + 1.0f,  // 右面左上
+                            1.0f, 0.0f, 0.0f,                                   // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 右面右上
+                            1.0f, 0.0f, 0.0f,                                         // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z,  // 右面右下
+                            1.0f, 0.0f, 0.0f,                                   // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f
+                            });
+                    }
+
+                    if (z == 0 || data[x + y * m_ChunkSize + (z - 1) * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加前面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].front.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].front.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x, position.y, position.z,  // 前面左下
+                            0.0f, 0.0f, -1.0f,                     // 法向量
+                            textureCoordX, textureCoordY,
+
+                            position.x + 1.0f, position.y, position.z,  // 前面右下
+                            0.0f, 0.0f, -1.0f,                         // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z,  // 前面右上
+                            0.0f, 0.0f, -1.0f,                                 // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                            position.x, position.y + 1.0f, position.z,  // 前面左上
+                            0.0f, 0.0f, -1.0f,                           // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f
+                            });
+                    }
+
+                    if (z == m_ChunkSize - 1 || data[x + y * m_ChunkSize + (z + 1) * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                        // 添加后面四个顶点
+                        float textureCoordX = m_BlockTypes[blockTypeID].back.x;
+                        float textureCoordY = m_BlockTypes[blockTypeID].back.y;
+                        m_Vertices.insert(m_Vertices.end(), {
+                            position.x + 1.0f, position.y, position.z + 1.0f,  // 后面右下
+                            0.0f, 0.0f, 1.0f,                                   // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                            position.x, position.y, position.z + 1.0f,  // 后面左下
+                            0.0f, 0.0f, 1.0f,                             // 法向量
+                            textureCoordX, textureCoordY,
+
+                            position.x, position.y + 1.0f, position.z + 1.0f,  // 后面左上
+                            0.0f, 0.0f, 1.0f,                                   // 法向量
+                            textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 后面右上
+                            0.0f, 0.0f, 1.0f,                                       // 法向量
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
+                            });
+                    }
+
                 }
-
-                // 顶面
-                if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加顶面四个顶点
-                    float textureCoordX = m_BlockTypes[blockTypeID].top.x;
-                    float textureCoordY = m_BlockTypes[blockTypeID].top.y;
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y + 1.0f, position.z,  // 顶左下
-                        0.0f, 1.0f, 0.0f,                       // 法向量
-                        textureCoordX, textureCoordY,          // 纹理坐标
-
-                        position.x + 1.0f, position.y + 1.0f, position.z,  // 顶右下
-                        0.0f, 1.0f, 0.0f,                               // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY, // 纹理坐标
-
-                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 顶右上
-                        0.0f, 1.0f, 0.0f,                                       // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f, // 纹理坐标
-
-                        position.x, position.y + 1.0f, position.z + 1.0f,  // 顶左上
-                        0.0f, 1.0f, 0.0f,                                   // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f // 纹理坐标
-                        });
-                }
-
-                // 检查相邻方块以决定侧面
-                if (x == 0 || data[(x - 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加左面四个顶点
-                    float textureCoordX = m_BlockTypes[blockTypeID].left.x;
-                    float textureCoordY = m_BlockTypes[blockTypeID].left.y;
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y, position.z + 1.0f,  // 左面左上
-                        -1.0f, 0.0f, 0.0f,                         // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY,
-
-                        position.x, position.y, position.z,  // 左面左下
-                        -1.0f, 0.0f, 0.0f,                     // 法向量
-                        textureCoordX, textureCoordY,
-
-                        position.x, position.y + 1.0f, position.z,  // 左面右下
-                        - 1.0f, 0.0f, 0.0f,                           // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,
-
-                        position.x, position.y + 1.0f, position.z + 1.0f,  // 左面右上
-                        -1.0f, 0.0f, 0.0f,                               // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
-                        });
-                }
-
-                if (x == m_ChunkSize - 1 || data[(x + 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加右面四个顶点
-                    float textureCoordX = m_BlockTypes[blockTypeID].right.x;
-                    float textureCoordY = m_BlockTypes[blockTypeID].right.y;
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x + 1.0f, position.y, position.z,  // 右面左下
-                        1.0f, 0.0f, 0.0f,                             // 法向量
-                        textureCoordX, textureCoordY,
-
-                        position.x + 1.0f, position.y, position.z + 1.0f,  // 右面左上
-                        1.0f, 0.0f, 0.0f,                                   // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY,
-
-                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 右面右上
-                        1.0f, 0.0f, 0.0f,                                         // 法向量
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
-
-                        position.x + 1.0f, position.y + 1.0f, position.z,  // 右面右下
-                        1.0f, 0.0f, 0.0f,                                   // 法向量
-                        textureCoordX, textureCoordY + 1.0f / 32.0f
-                        });
-                }
-
-                if (z == 0 || data[x + y * m_ChunkSize + (z - 1) * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加前面四个顶点
+                else {  //non-block
                     float textureCoordX = m_BlockTypes[blockTypeID].front.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].front.y;
                     m_Vertices.insert(m_Vertices.end(), {
-                        position.x, position.y, position.z,  // 前面左下
-                        0.0f, 0.0f, -1.0f,                     // 法向量
+                        position.x, position.y, position.z,
+                        1.0f, 0.0f, -1.0f,
                         textureCoordX, textureCoordY,
 
-                        position.x + 1.0f, position.y, position.z,  // 前面右下
-                        0.0f, 0.0f, -1.0f,                         // 法向量
+                        position.x + 1.0f, position.y, position.z + 1.0f,
+                        1.0f, 0.0f, -1.0f,
                         textureCoordX + 1.0f / 64.0f, textureCoordY,
 
-                        position.x + 1.0f, position.y + 1.0f, position.z,  // 前面右上
-                        0.0f, 0.0f, -1.0f,                                 // 法向量
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,
+                        1.0f, 0.0f, -1.0f,
                         textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
 
-                        position.x, position.y + 1.0f, position.z,  // 前面左上
-                        0.0f, 0.0f, -1.0f,                           // 法向量
+                        position.x, position.y + 1.0f, position.z,
+                        1.0f, 0.0f, -1.0f,
                         textureCoordX, textureCoordY + 1.0f / 32.0f
                         });
-                }
-
-                if (z == m_ChunkSize - 1 || data[x + y * m_ChunkSize + (z + 1) * m_ChunkSize * m_ChunkSize] == 0) {
-                    // 添加后面四个顶点
-                    float textureCoordX = m_BlockTypes[blockTypeID].back.x;
-                    float textureCoordY = m_BlockTypes[blockTypeID].back.y;
+                    
                     m_Vertices.insert(m_Vertices.end(), {
-                        position.x + 1.0f, position.y, position.z + 1.0f,  // 后面右下
-                        0.0f, 0.0f, 1.0f,                                   // 法向量
+                        position.x + 1.0f, position.y, position.z + 1.0f,
+                        -1.0f, 0.0f, 1.0f,
                         textureCoordX + 1.0f / 64.0f, textureCoordY,
 
-                        position.x, position.y, position.z + 1.0f,  // 后面左下
-                        0.0f, 0.0f, 1.0f,                             // 法向量
+                        position.x, position.y, position.z,
+                        -1.0f, 0.0f, 1.0f,
                         textureCoordX, textureCoordY,
 
-                        position.x, position.y + 1.0f, position.z + 1.0f,  // 后面左上
-                        0.0f, 0.0f, 1.0f,                                   // 法向量
+                        position.x, position.y + 1.0f, position.z,
+                        -1.0f, 0.0f, 1.0f,
                         textureCoordX, textureCoordY + 1.0f / 32.0f,
 
-                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,  // 后面右上
-                        0.0f, 0.0f, 1.0f,                                       // 法向量
+                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,
+                        -1.0f, 0.0f, 1.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
+                        });
+
+                    textureCoordX = m_BlockTypes[blockTypeID].back.x;
+                    textureCoordY = m_BlockTypes[blockTypeID].back.y;
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x, position.y, position.z + 1.0f,
+                        -1.0f, 0.0f, -1.0f,
+                        textureCoordX, textureCoordY,
+
+                        position.x + 1.0f, position.y, position.z,
+                        -1.0f, 0.0f, -1.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z,
+                        -1.0f, 0.0f, -1.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,
+                        -1.0f, 0.0f, -1.0f,
+                        textureCoordX, textureCoordY + 1.0f / 32.0f
+                        });
+
+                    m_Vertices.insert(m_Vertices.end(), {
+                        position.x + 1.0f, position.y, position.z,
+                        1.0f, 0.0f, 1.0f,
+                        textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                        position.x, position.y, position.z + 1.0f,
+                        1.0f, 0.0f, 1.0f,
+                        textureCoordX, textureCoordY,
+
+                        position.x, position.y + 1.0f, position.z + 1.0f,
+                        1.0f, 0.0f, 1.0f,
+                        textureCoordX, textureCoordY + 1.0f / 32.0f,
+
+                        position.x + 1.0f, position.y + 1.0f, position.z,
+                        1.0f, 0.0f, 1.0f,
                         textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
                         });
                 }

@@ -11,13 +11,8 @@
 
 // Block Type
 enum class BlockType {
-	Air,
-	Grass,
-	Dirt,
-	Stone,
-	Water,
-	Sand,
-	Wood,
+	Air, Kusa, Daisy, Tulip, Dandelion, Poppy,   // non-cube
+	Grass, Dirt, Stone, Water, Sand, Wood,       // Cube 
 	UNDIFINED
 };
 
@@ -61,7 +56,7 @@ private:
 
 private:
 	unsigned int m_ChunkSize;
-	std::vector<unsigned int> data;
+	std::vector<int> data;
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;

@@ -168,6 +168,9 @@ float PCSS(sampler2D shadowMap, vec4 coords){
 
 void main()
 {
+    if(texture2D(u_Texture, v_TexCoord).a == 0) //Transparent part
+        discard;
+
     vec3 color = pow(texture2D(u_Texture, v_TexCoord).rgb, vec3(2.2));
 
     // Blinn-Phong Light Model
