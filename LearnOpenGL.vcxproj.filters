@@ -85,5 +85,8 @@
     <ClInclude Include="src\World.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\vendor\OpenSimplexNoise.hh">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

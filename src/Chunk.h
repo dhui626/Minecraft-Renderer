@@ -1,13 +1,11 @@
 #pragma once
 #include <vector>
 #include <glm/glm.hpp>
-
-#include "Renderer.h"
-
-#include <vector>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+
+#include "Renderer.h"
 
 // Block Type
 enum class BlockType {
@@ -26,23 +24,16 @@ struct BlockTextureCoordinates {
 	glm::vec2 back;
 };
 
-class PerlinNoise {
-public:
-    PerlinNoise(unsigned int seed);
-    double noise(double x, double y);
-private:
-	double fade(double t);
-	double lerp(double a, double b, double t);
-	double grad(int hash, double x, double y);
-
-private:
-    int permutation[512];
+struct NoiseSettings {
+	float amplitude;
+	float frequency;
+	float offset;
 };
 
 class Chunk
 {
 public:
-	Chunk(unsigned int chunkSize, glm::vec3 originPos);
+	Chunk(int chunkSize, glm::vec3 originPos);
 	~Chunk();
 
 	void Generate(unsigned int seed);
@@ -51,16 +42,16 @@ public:
 
 private:
 	glm::uvec3 GetXYZ(unsigned int index);
-    std::vector<double> generatePerlinNoise(int n, unsigned int seed);
 	void LoadBlockTextures();
 
 private:
-	unsigned int m_ChunkSize;
+	int m_ChunkSize;
 	std::vector<int> data;
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
 	std::vector<BlockTextureCoordinates> m_BlockTypes;
+	std::vector<NoiseSettings> m_NoiseSettings;
 
 	bool m_Generated = false;
 	glm::vec3 m_OriginPos;

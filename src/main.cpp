@@ -11,15 +11,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "Renderer.h"
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "Shader.h"
 #include "Texture.h"
 #include "Camera.h"
-#include "Chunk.h"
 #include "World.h"
 
 float deltaTime = 0.0f;
