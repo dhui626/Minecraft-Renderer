@@ -16,7 +16,7 @@ Chunk::Chunk(int chunkSize, glm::vec3 originPos)
 
 Chunk::~Chunk()
 {
-	data.clear();
+    std::cout << "Deleted chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
 }
 
 glm::uvec3 Chunk::GetXYZ(unsigned int index)
