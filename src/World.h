@@ -9,12 +9,14 @@ public:
 	~World();
 
 	void SetRenderDistance(int distance);
-	std::vector<float> GetVertices();
-	std::vector<unsigned int> GetIndices();
 	void Generate(unsigned int seed);
+	void BindShader(Shader* shader);
+
+	size_t GetChunkNum();
+	std::vector< std::shared_ptr<Chunk> > GetChunkData();
 
 private:
 	int m_RenderDistance = 1;
 	int m_ChunkSize;
-	std::vector<Chunk*> m_ChunkData;
+	std::vector< std::shared_ptr<Chunk> > m_ChunkData;
 };

@@ -1,11 +1,9 @@
 #pragma once
 #include <vector>
 #include <glm/glm.hpp>
-#include <cmath>
-#include <cstdlib>
 #include <iostream>
 
-#include "Renderer.h"
+#include "VertexBufferLayout.h"
 
 // Block Type
 enum class BlockType {
@@ -39,6 +37,9 @@ public:
 	void Generate(unsigned int seed);
 	std::vector<float> GetVertices() { return m_Vertices; }
 	std::vector<unsigned int> GetIndices() { return m_Indices; }
+	void RenderInitialize(Shader* shader);
+	void BindShader(Shader* shader);
+	std::shared_ptr<Renderer> GetRenderer() { return m_renderer; };
 
 private:
 	glm::uvec3 GetXYZ(unsigned int index);
@@ -54,5 +55,11 @@ private:
 	std::vector<NoiseSettings> m_NoiseSettings;
 
 	bool m_Generated = false;
+	bool m_Initialized = false;
 	glm::vec3 m_OriginPos;
+
+	std::shared_ptr<VertexArray> m_va;
+	std::shared_ptr<VertexBuffer> m_vb;
+	std::shared_ptr<IndexBuffer> m_ib;
+	std::shared_ptr<Renderer> m_renderer;
 };

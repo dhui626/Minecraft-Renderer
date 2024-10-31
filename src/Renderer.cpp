@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include <iostream>
 
 void GLClearError()
 {
@@ -17,7 +16,7 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
-Renderer::Renderer(VertexArray* va, IndexBuffer* ib, Shader* shader)
+Renderer::Renderer(std::shared_ptr<VertexArray> va, std::shared_ptr<IndexBuffer> ib, Shader* shader)
     :m_va(va), m_ib(ib), m_shader(shader)
 {
     m_DepthMap = 0;

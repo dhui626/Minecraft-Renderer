@@ -73,47 +73,26 @@ int main(void)
     //GLCall(glEnable(GL_BLEND));
     
     // Generate Terrains
-    //Chunk chunk(32, glm::vec3(11, 11, 16));
-    //chunk.Generate(166615615154);
-    //std::vector<float> vtx = chunk.GetVertices();
-    //std::vector<unsigned int> idx = chunk.GetIndices();
     World world(32, 2);
-    world.Generate(166615615154);
-    std::vector<float> vtx = world.GetVertices();
-    std::vector<unsigned int> idx = world.GetIndices();
+    world.Generate(1666154);
+    //std::vector<float> vtx = world.GetVertices();
+    //std::vector<unsigned int> idx = world.GetIndices();
    
     {
-        // vertex array
-        VertexArray va;
-        va.Bind();
-
-        // vertex buffer
-        VertexBuffer vb(vtx.data(), vtx.size() * sizeof(float));
-
-        // index buffer
-        IndexBuffer ib(idx.data(), idx.size());
-
-        VertexBufferLayout layout;
-        layout.Push<float>(3);
-        layout.Push<float>(3);
-        layout.Push<float>(2);
-        va.AddBuffer(vb, layout);
-
-        //Load shader file
-        Shader shader("res/shaders/Basic.shader");
-        shader.Bind();
-
-        // Camera 
+        /* Camera */ 
         Camera camera(45.0f, 0.1f, 100.0f, window);
         camera.OnResize(width, height);
-        //camera.SetPosition(glm::vec3(0.0, 0.0, 0.0));
-        
+        camera.SetPosition(glm::vec3(0.0, 20.0, 0.0));
         //MVP matrix
         glm::mat4 model(1.0f);
         glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
         glm::mat4 view = camera.GetView();
         glm::mat4 proj = camera.GetProjection();
 
+        //Load shader file
+        Shader shader("res/shaders/Basic.shader");
+        shader.Bind();
+        
         // Uniforms
         glm::vec3 lightPos{ 100.0f,300.0f,200.0f };
         glm::vec3 lightDir{ -1.0f, -3.0f, -2.0f };
@@ -129,12 +108,6 @@ int main(void)
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0);
 
-        // Unbind
-        shader.Unbind();
-        va.Unbind();
-        vb.Unbind();
-        ib.Unbind();
-
         Shader shadowShader("res/shaders/Shadow.shader");
         shadowShader.Bind();
         // Uniforms
@@ -146,8 +119,7 @@ int main(void)
         shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
         shadowShader.Unbind();
 
-        Renderer renderer(&va, &ib, &shader);
-        renderer.GenerateDepthMap();
+        world.BindShader(&shader);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -159,62 +131,71 @@ int main(void)
             lastFrameTime = currentTime;
 
             /* Render here */
-            renderer.Clear();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            if (settings.Shadow)
+            auto chunkData = world.GetChunkData();
+            for (int i = 0; i < world.GetChunkNum(); i++)
             {
-                // ShadowMap : First pass
-                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-                glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
-                glClear(GL_DEPTH_BUFFER_BIT);
-                shadowShader.Bind();
-                renderer.ChangeShader(&shadowShader);
-                // Uniforms
-                lightPos = camera.GetPosition() + glm::vec3(0.0f, 10.0f, 0.0f) + lightDir * glm::vec3(-10.0);
-                lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
-                lightSpaceMatrix = lightProjection * lightView;
-                shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-                texture.Bind(0);
-                renderer.Draw();
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                std::shared_ptr<Renderer> renderer = chunkData[i]->GetRenderer();
+                if (settings.Shadow)
+                {
+                    // ShadowMap : First pass
+                    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+                    glBindFramebuffer(GL_FRAMEBUFFER, renderer->GetDepthMapFBO());
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    //world.BindShader(&shadowShader);
+                    shadowShader.Bind();
+                    renderer->ChangeShader(&shadowShader);
+                    // Uniforms
+                    lightPos = camera.GetPosition() + glm::vec3(0.0f, 10.0f, 0.0f) + lightDir * glm::vec3(-10.0);
+                    lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
+                    lightSpaceMatrix = lightProjection * lightView;
+                    shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                    texture.Bind(0);
+                    renderer->Draw();
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                }
+                else {
+                    glBindFramebuffer(GL_FRAMEBUFFER, renderer->GetDepthMapFBO());
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                }
             }
-            else {
-                glBindFramebuffer(GL_FRAMEBUFFER, renderer.GetDepthMapFBO());
-                glClear(GL_DEPTH_BUFFER_BIT);
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            }
-
-            // ShadowMap : Second pass
             glViewport(0, 0, width, height);
             glm::vec3 backgroundColor = glm::mix(glm::vec3(0.67f, 0.90f, 0.90f), glm::vec3(1.0f, 0.8f, 0.3f), (glm::normalize(lightDir).y + 1.0f) * 0.5f);
             glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            shader.Bind();
-            renderer.ChangeShader(&shader);
-            texture.Bind(0);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, renderer.GetDepthMap());
-            shader.SetUniform1i("u_ShadowMap", 1);
+            for (int i = 0; i < world.GetChunkNum(); i++)
+            {
+                std::shared_ptr<Renderer> renderer = chunkData[i]->GetRenderer();
+                // ShadowMap : Second pass
+                shader.Bind();
+                renderer->ChangeShader(&shader);
+                texture.Bind(0);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, renderer->GetDepthMap());
+                shader.SetUniform1i("u_ShadowMap", 1);
 
-            //Uniforms
-            model = glm::translate(glm::mat4{ 1.0 }, translation);
-            shader.SetUniformMat4f("u_Model", model);
+                //Uniforms
+                model = glm::translate(glm::mat4{ 1.0 }, translation);
+                shader.SetUniformMat4f("u_Model", model);
 
-            view = camera.GetView();
-            shader.SetUniformMat4f("u_View", view);
+                view = camera.GetView();
+                shader.SetUniformMat4f("u_View", view);
 
-            proj = camera.GetProjection();
-            shader.SetUniformMat4f("u_Proj", proj);
+                proj = camera.GetProjection();
+                shader.SetUniformMat4f("u_Proj", proj);
 
-            shader.SetUniform3f("u_CameraPos", camera.GetPosition());
-            shader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-            shader.SetUniform3f("u_LightPos", lightPos);
-            shader.SetUniform1i("show_Shadow", settings.Shadow);
-            shader.SetUniform1i("show_PCF", settings.PCF);
-            shader.SetUniform1i("show_PCSS", settings.PCSS);
+                shader.SetUniform3f("u_CameraPos", camera.GetPosition());
+                shader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                shader.SetUniform3f("u_LightPos", lightPos);
+                shader.SetUniform1i("show_Shadow", settings.Shadow);
+                shader.SetUniform1i("show_PCF", settings.PCF);
+                shader.SetUniform1i("show_PCSS", settings.PCSS);
 
-            renderer.Draw();
-
+                renderer->Draw();
+            }
+          
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
@@ -241,7 +222,8 @@ int main(void)
             }
             {
                 ImGui::Begin("Shadow Map Texture");
-                ImGui::Image((void*)(intptr_t)renderer.GetDepthMap(), ImVec2(512, 512), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
+                std::shared_ptr<Renderer> renderer = chunkData[0]->GetRenderer();
+                ImGui::Image((void*)(intptr_t)renderer->GetDepthMap(), ImVec2(512, 512), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
                 ImGui::End();
             }
             ImGui::Render();

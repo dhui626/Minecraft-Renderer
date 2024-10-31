@@ -10,7 +10,7 @@ Chunk::Chunk(int chunkSize, glm::vec3 originPos)
     m_OriginPos = originPos;
 
     m_NoiseSettings.resize(2);
-    m_NoiseSettings[0] = { 20.0f,0.001f,0.0f };
+    m_NoiseSettings[0] = { 20.0f,0.01f,0.0f };
     m_NoiseSettings[1] = { 3.0f,0.05f,0.0f };
 }
 
@@ -121,7 +121,7 @@ void Chunk::Generate(unsigned int seed)
                 normalizeNum += m_NoiseSettings[i].amplitude;
             }
             noiseValue2D = (noiseValue2D + normalizeNum) / 2 / normalizeNum;
-            height = (int)(pow(noiseValue2D, 2.5) * m_ChunkSize);
+            height = (int)(pow(noiseValue2D, 1) * m_ChunkSize);
             
             // block data
             for (int y = 0; y < height / 2; y++)
@@ -400,5 +400,36 @@ void Chunk::Generate(unsigned int seed)
     }
 
     m_Generated = true;
-    std::cout << "Loaded chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
+
+    std::cout << "Generated chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
 }
+
+void Chunk::RenderInitialize(Shader* shader)
+{
+    // Initialize For Rendering
+    // VAO
+    m_va = std::make_shared<VertexArray>();
+    m_va->Bind();
+    // VBO
+    m_vb = std::make_shared<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(float));
+    // IBO
+    m_ib = std::make_shared<IndexBuffer>(m_Indices.data(), m_Indices.size());
+
+    VertexBufferLayout layout;
+    layout.Push<float>(3);
+    layout.Push<float>(3);
+    layout.Push<float>(2);
+    m_va->AddBuffer(*m_vb, layout);
+
+    //Bind shader file
+    m_renderer = std::make_shared<Renderer>(m_va, m_ib, shader);
+    m_renderer->GenerateDepthMap();
+
+    m_Initialized = true;
+}
+
+void Chunk::BindShader(Shader* shader)
+{
+    m_renderer->ChangeShader(shader);
+}
+
