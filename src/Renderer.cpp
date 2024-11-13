@@ -19,11 +19,9 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
-Renderer::Renderer(Shader* shader)
+Renderer::Renderer(std::vector<std::shared_ptr<Shader>> shader)
     :m_shader(shader)
 {
-
-
     m_va.reserve((int)VAOType::UNDIFINED);
     m_ib.reserve((int)VAOType::UNDIFINED);
 }
@@ -41,9 +39,9 @@ void Renderer::Draw() const
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
 
-    m_shader->Bind();
     for (int i = 0; i < (int)VAOType::UNDIFINED; i++)
     {
+        m_shader[i]->Bind();
         m_va[i]->Bind();
         m_ib[i]->Bind();
         switch (i)
@@ -56,6 +54,7 @@ void Renderer::Draw() const
             GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
             break;
         case (int)VAOType::Water:
+            glEnable(GL_CULL_FACE);
             GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
             break;
         default:
@@ -76,9 +75,17 @@ void Renderer::SetVAOIBO(std::vector<std::shared_ptr<VertexArray>> va, std::vect
     }
 }
 
-void Renderer::ChangeShader(Shader* shader)
+void Renderer::ChangeShader(std::shared_ptr<Shader> shader)
 {
-    m_shader = shader;
+    for (int i = 0; i < m_shader.size(); i++)
+    {
+        m_shader[i] = shader;
+    }
+}
+
+void Renderer::ChangeShader(std::vector<std::shared_ptr<Shader>> shaders)
+{
+    m_shader = shaders;
 }
 
 void Renderer::GenerateDepthMap()

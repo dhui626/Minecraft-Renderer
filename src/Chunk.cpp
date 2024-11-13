@@ -380,7 +380,7 @@ void Chunk::Generate(unsigned int seed)
     std::cout << "Generated chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
 }
 
-void Chunk::RenderInitialize(Shader* shader)
+void Chunk::RenderInitialize(std::vector<std::shared_ptr<Shader>> shader)
 {
     // Initialize For Rendering
     { // Solid
@@ -439,10 +439,5 @@ void Chunk::RenderInitialize(Shader* shader)
     m_renderer->GenerateDepthMap();
 
     m_Initialized = true;
-}
-
-void Chunk::BindShader(Shader* shader)
-{
-    m_renderer->ChangeShader(shader);
 }
 

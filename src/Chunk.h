@@ -37,8 +37,7 @@ public:
 	void Generate(unsigned int seed);
 	std::vector<float> GetVertices() { return m_Vertices; }
 	std::vector<unsigned int> GetIndices() { return m_Indices; }
-	void RenderInitialize(Shader* shader);
-	void BindShader(Shader* shader);
+	void RenderInitialize(std::vector<std::shared_ptr<Shader>> shader);
 	std::shared_ptr<Renderer> GetRenderer() { return m_renderer; };
 
 private:

@@ -86,35 +86,51 @@ int main(void)
         glm::mat4 view = camera.GetView();
         glm::mat4 proj = camera.GetProjection();
 
-        //Load shader file
-        Shader shader("res/shaders/Basic.shader");
-        shader.Bind();
-        
+        //Basic shader
+        std::vector<std::shared_ptr<Shader>> allShaders;
+        std::shared_ptr<Shader> shader = std::make_shared<Shader>("res/shaders/Basic.shader");
+        allShaders.emplace_back(shader);
+        shader->Bind();
         // Uniforms
         glm::vec3 lightPos{ 100.0f,300.0f,200.0f };
         glm::vec3 lightDir{ -1.0f, -3.0f, -2.0f };
         float lightIntensity = 3.0f;
-        shader.SetUniform1f("u_LightIntensity", lightIntensity);
+        shader->SetUniform1f("u_LightIntensity", lightIntensity);
         float Kd = 1.0f; //diffuse K
-        shader.SetUniform1f("u_Kd", Kd);
+        shader->SetUniform1f("u_Kd", Kd);
         float Ks = 1.0f; //specular K
-        shader.SetUniform1f("u_Ks", Ks);
+        shader->SetUniform1f("u_Ks", Ks);
 
         // Texture
         Texture texture("res/textures/23w31a_blocks.png-atlas.png");
         texture.Bind();
-        shader.SetUniform1i("u_Texture", 0);
+        shader->SetUniform1i("u_Texture", 0);
 
-        Shader shadowShader("res/shaders/Shadow.shader");
-        shadowShader.Bind();
+        // Shadow Map shader
+        std::shared_ptr<Shader> shadowShader = std::make_shared<Shader>("res/shaders/Shadow.shader");
+        //Shaders.emplace_back(shadowShader);
+        shadowShader->Bind();
         // Uniforms
         float near_plane = 0.1f, far_plane = 200.0f;
         glm::mat4 lightProjection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-        shadowShader.SetUniformMat4f("u_Model", model);
-        shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-        shadowShader.Unbind();
+        shadowShader->SetUniformMat4f("u_Model", model);
+        shadowShader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+        shadowShader->Unbind();
+
+        // BillBoard shader
+        std::shared_ptr<Shader> billBoardShader = std::make_shared<Shader>("res/shaders/BillBoard.shader");
+        allShaders.emplace_back(billBoardShader);
+        billBoardShader->Bind();
+        billBoardShader->SetUniform1f("u_LightIntensity", lightIntensity);
+        billBoardShader->SetUniform1f("u_Kd", Kd);
+        billBoardShader->SetUniform1f("u_Ks", Ks);
+        billBoardShader->SetUniform1i("u_Texture", 0);
+
+        // Water shader
+        std::shared_ptr<Shader> waterShader = std::make_shared<Shader>("res/shaders/Water.shader");
+        allShaders.emplace_back(waterShader);
 
         //world.SetRenderDistance(4);
 
@@ -130,7 +146,7 @@ int main(void)
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            world.Update(&shader, camera.GetPosition());
+            world.Update(allShaders, camera.GetPosition());
             auto chunkData = world.GetChunkData();
 
             unsigned int DepthFBO = 0;
@@ -155,13 +171,13 @@ int main(void)
                     std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
 
                     // ShadowMap : First pass
-                    shadowShader.Bind();
-                    renderer->ChangeShader(&shadowShader);
+                    shadowShader->Bind();
+                    renderer->ChangeShader(shadowShader);
                     // Uniforms
                     lightPos = camera.GetPosition() + glm::vec3(0.0f, 10.0f, 0.0f) + lightDir * glm::vec3(-10.0);
                     lightView = glm::lookAt(lightPos, lightPos + lightDir, glm::vec3(0.0, 1.0, 0.0));
                     lightSpaceMatrix = lightProjection * lightView;
-                    shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                    shadowShader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
                     texture.Bind(0);
                     renderer->Draw();
                 }
@@ -181,29 +197,42 @@ int main(void)
                 auto currentChunk = entry.second;
                 std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
                 // ShadowMap : Second pass
-                shader.Bind();
-                renderer->ChangeShader(&shader);
+                shader->Bind();
+                renderer->ChangeShader(allShaders);
                 texture.Bind(0);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, renderer->GetDepthMap());
-                shader.SetUniform1i("u_ShadowMap", 1);
+                shader->SetUniform1i("u_ShadowMap", 1);
 
                 //Uniforms
                 model = glm::translate(glm::mat4{ 1.0 }, translation);
-                shader.SetUniformMat4f("u_Model", model);
+                shader->SetUniformMat4f("u_Model", model);
 
                 view = camera.GetView();
-                shader.SetUniformMat4f("u_View", view);
+                shader->SetUniformMat4f("u_View", view);
 
                 proj = camera.GetProjection();
-                shader.SetUniformMat4f("u_Proj", proj);
+                shader->SetUniformMat4f("u_Proj", proj);
 
-                shader.SetUniform3f("u_CameraPos", camera.GetPosition());
-                shader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-                shader.SetUniform3f("u_LightPos", lightPos);
-                shader.SetUniform1i("show_Shadow", settings.Shadow);
-                shader.SetUniform1i("show_PCF", settings.PCF);
-                shader.SetUniform1i("show_PCSS", settings.PCSS);
+                shader->SetUniform3f("u_CameraPos", camera.GetPosition());
+                shader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                shader->SetUniform3f("u_LightPos", lightPos);
+                shader->SetUniform1i("show_Shadow", settings.Shadow);
+                shader->SetUniform1i("show_PCF", settings.PCF);
+                shader->SetUniform1i("show_PCSS", settings.PCSS);
+
+                // BillBoard shader
+                billBoardShader->Bind();
+                billBoardShader->SetUniform1i("u_ShadowMap", 1);
+                billBoardShader->SetUniformMat4f("u_Model", model);
+                billBoardShader->SetUniformMat4f("u_View", view);
+                billBoardShader->SetUniformMat4f("u_Proj", proj);
+                billBoardShader->SetUniform3f("u_CameraPos", camera.GetPosition());
+                billBoardShader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+                billBoardShader->SetUniform3f("u_LightPos", lightPos);
+                billBoardShader->SetUniform1i("show_Shadow", settings.Shadow);
+                billBoardShader->SetUniform1i("show_PCF", settings.PCF);
+                billBoardShader->SetUniform1i("show_PCSS", settings.PCSS);
 
                 renderer->Draw();
             }

@@ -24,8 +24,7 @@ public:
 
 	void SetRenderDistance(int distance);
 	void Generate(unsigned int seed);
-	void BindShader(Shader* shader);
-	void Update(Shader* shader, glm::vec3 cameraPos);
+	void Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 cameraPos);
 	glm::uvec3 GetCurrentChunkPos();
 
 	size_t GetChunkNum();

@@ -40,16 +40,16 @@ void World::Generate(unsigned int seed)
 	}
 }
 
-void World::BindShader(Shader* shader)
-{
-	for (auto entry : m_ChunkData)
-	{
-		auto chunkPtr = entry.second;
-		chunkPtr->RenderInitialize(shader);
-	}
-}
+//void World::BindShader(Shader* shader)
+//{
+//	for (auto entry : m_ChunkData)
+//	{
+//		auto chunkPtr = entry.second;
+//		chunkPtr->RenderInitialize(shader);
+//	}
+//}
 
-void World::Update(Shader* shader, glm::vec3 cameraPos)
+void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 cameraPos)
 {
 	if (!m_ChunkQueue.empty())
 	{
