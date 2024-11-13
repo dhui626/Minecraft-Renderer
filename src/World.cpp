@@ -103,6 +103,11 @@ void World::Update(Shader* shader, glm::vec3 cameraPos)
 	lastChunkPos = currentChunkPos;
 }
 
+glm::uvec3 World::GetCurrentChunkPos()
+{
+	return lastChunkPos;
+}
+
 size_t World::GetChunkNum()
 {
 	return m_ChunkData.size();

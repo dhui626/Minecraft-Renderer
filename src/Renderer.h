@@ -27,8 +27,8 @@ public:
 	std::shared_ptr<VertexArray> GetVAO() const { return m_va; };
 	std::shared_ptr<IndexBuffer> GetIBO() const { return m_ib; };
 	Shader* GetShader() const { return m_shader; };
-	unsigned int GetDepthMap() const { return m_DepthMap; };
-	unsigned int GetDepthMapFBO() const { return m_DepthMapFBO; };
+	static unsigned int GetDepthMap() { return m_DepthMap; };
+	static unsigned int GetDepthMapFBO() { return m_DepthMapFBO; };
 	void ChangeShader(Shader* shader);
 
 	void GenerateDepthMap();
@@ -38,8 +38,8 @@ private:
 	std::shared_ptr<IndexBuffer> m_ib;
 	Shader* m_shader;
 
-	unsigned int m_DepthMap;
-	unsigned int m_DepthMapFBO;
+	static unsigned int m_DepthMap;
+	static unsigned int m_DepthMapFBO;
 };
 
 

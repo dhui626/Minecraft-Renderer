@@ -26,6 +26,7 @@ public:
 	void Generate(unsigned int seed);
 	void BindShader(Shader* shader);
 	void Update(Shader* shader, glm::vec3 cameraPos);
+	glm::uvec3 GetCurrentChunkPos();
 
 	size_t GetChunkNum();
 	std::unordered_map<std::pair<int, int>, std::shared_ptr<Chunk>, pair_hash> GetChunkData();

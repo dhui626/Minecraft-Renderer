@@ -68,7 +68,7 @@ int main(void)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
-
+    
     //GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     //GLCall(glEnable(GL_BLEND));
     
@@ -132,16 +132,29 @@ int main(void)
 
             world.Update(&shader, camera.GetPosition());
             auto chunkData = world.GetChunkData();
-            for (auto entry : chunkData)
+
+            unsigned int DepthFBO = 0;
+            unsigned int DepthMapID = 0;
+            glm::uvec3 currentChunkPos = world.GetCurrentChunkPos();
+            std::pair<int, int> currentChunkXZ{ currentChunkPos.x, currentChunkPos.z };
+            if (chunkData.find(currentChunkXZ) != chunkData.end())
             {
-                auto currentChunk = entry.second;
-                std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
-                if (settings.Shadow)
+                std::shared_ptr<Renderer> renderer = chunkData.at(currentChunkXZ)->GetRenderer();
+                DepthFBO = renderer->GetDepthMapFBO();
+                DepthMapID = renderer->GetDepthMap();
+            }
+
+            if (settings.Shadow)
+            {
+                glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+                glBindFramebuffer(GL_FRAMEBUFFER, DepthFBO);
+                glClear(GL_DEPTH_BUFFER_BIT);
+                for (auto entry : chunkData)
                 {
+                    auto currentChunk = entry.second;
+                    std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
+
                     // ShadowMap : First pass
-                    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-                    glBindFramebuffer(GL_FRAMEBUFFER, renderer->GetDepthMapFBO());
-                    glClear(GL_DEPTH_BUFFER_BIT);
                     shadowShader.Bind();
                     renderer->ChangeShader(&shadowShader);
                     // Uniforms
@@ -151,13 +164,13 @@ int main(void)
                     shadowShader.SetUniformMat4f("u_LightPV", lightSpaceMatrix);
                     texture.Bind(0);
                     renderer->Draw();
-                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 }
-                else {
-                    glBindFramebuffer(GL_FRAMEBUFFER, renderer->GetDepthMapFBO());
-                    glClear(GL_DEPTH_BUFFER_BIT);
-                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                }
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
+            else {
+                glBindFramebuffer(GL_FRAMEBUFFER, DepthFBO);
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
             glViewport(0, 0, width, height);
             glm::vec3 backgroundColor = glm::mix(glm::vec3(0.67f, 0.90f, 0.90f), glm::vec3(1.0f, 0.8f, 0.3f), (glm::normalize(lightDir).y + 1.0f) * 0.5f);
@@ -222,8 +235,7 @@ int main(void)
             }
             {
                 ImGui::Begin("Shadow Map Texture");
-                //std::shared_ptr<Renderer> renderer = chunkData->GetRenderer();
-                //ImGui::Image((void*)(intptr_t)renderer->GetDepthMap(), ImVec2(512, 512), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
+                ImGui::Image((void*)(intptr_t)DepthMapID, ImVec2(512, 512), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
                 ImGui::End();
             }
             ImGui::Render();

@@ -1,5 +1,8 @@
 #include "Renderer.h"
 
+unsigned int Renderer::m_DepthMap = 0;
+unsigned int Renderer::m_DepthMapFBO = 0;
+
 void GLClearError()
 {
     while (glGetError() != GL_NO_ERROR);
@@ -19,8 +22,6 @@ bool GLLogCall(const char* function, const char* file, int line)
 Renderer::Renderer(std::shared_ptr<VertexArray> va, std::shared_ptr<IndexBuffer> ib, Shader* shader)
     :m_va(va), m_ib(ib), m_shader(shader)
 {
-    m_DepthMap = 0;
-    m_DepthMapFBO = 0;
     glEnable(GL_DEPTH_TEST);
     // Back Face Culling
     glEnable(GL_CULL_FACE);
@@ -48,6 +49,9 @@ void Renderer::ChangeShader(Shader* shader)
 
 void Renderer::GenerateDepthMap()
 {
+    if (m_DepthMap != 0 && m_DepthMapFBO != 0) // Generated
+        return;
+
     glGenFramebuffers(1, &m_DepthMapFBO);
     glGenTextures(1, &m_DepthMap);
     glBindTexture(GL_TEXTURE_2D, m_DepthMap);
