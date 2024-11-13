@@ -51,6 +51,11 @@ private:
 
 	std::vector<float> m_Vertices;
 	std::vector<unsigned int> m_Indices;
+	std::vector<float> m_BillBoardVertices;
+	std::vector<unsigned int> m_BillBoardIndices;
+	std::vector<float> m_WaterVertices;
+	std::vector<unsigned int> m_WaterIndices;
+
 	std::vector<BlockTextureCoordinates> m_BlockTypes;
 	std::vector<NoiseSettings> m_NoiseSettings;
 
@@ -58,8 +63,8 @@ private:
 	bool m_Initialized = false;
 	glm::vec3 m_OriginPos;
 
-	std::shared_ptr<VertexArray> m_va;
-	std::shared_ptr<VertexBuffer> m_vb;
-	std::shared_ptr<IndexBuffer> m_ib;
+	std::vector<std::shared_ptr<VertexArray>>  m_va;
+	std::vector<std::shared_ptr<IndexBuffer>>  m_ib;
+	std::vector<std::shared_ptr<VertexBuffer>> m_vb;
 	std::shared_ptr<Renderer> m_renderer;
 };

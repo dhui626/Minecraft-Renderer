@@ -16,26 +16,36 @@ bool GLLogCall(const char* function, const char* file, int line);
 #define SHADOW_WIDTH 2048
 #define SHADOW_HEIGHT 2048
 
+// VAO Type
+enum class VAOType {
+	Solid,
+	Billboard,
+	Water,
+	UNDIFINED
+};
+
 class Renderer
 {
 public:
-	Renderer(std::shared_ptr<VertexArray> va, std::shared_ptr<IndexBuffer> ib, Shader* shader);
+	Renderer(Shader* shader);
 
 	void Clear() const;
 	void Draw() const;
 	
-	std::shared_ptr<VertexArray> GetVAO() const { return m_va; };
-	std::shared_ptr<IndexBuffer> GetIBO() const { return m_ib; };
+	//std::vector<std::shared_ptr<VertexArray>> GetVAO() const { return m_va; };
+	//std::vector<std::shared_ptr<IndexBuffer>> GetIBO() const { return m_ib; };
 	Shader* GetShader() const { return m_shader; };
 	static unsigned int GetDepthMap() { return m_DepthMap; };
 	static unsigned int GetDepthMapFBO() { return m_DepthMapFBO; };
+
+	void SetVAOIBO(std::vector<std::shared_ptr<VertexArray>> va, std::vector<std::shared_ptr<IndexBuffer>> ib);
 	void ChangeShader(Shader* shader);
 
 	void GenerateDepthMap();
 
 private:
-	std::shared_ptr<VertexArray> m_va;
-	std::shared_ptr<IndexBuffer> m_ib;
+	std::vector<std::shared_ptr<VertexArray>> m_va;
+	std::vector<std::shared_ptr<IndexBuffer>> m_ib;
 	Shader* m_shader;
 
 	static unsigned int m_DepthMap;

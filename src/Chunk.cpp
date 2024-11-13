@@ -306,10 +306,13 @@ void Chunk::Generate(unsigned int seed)
                     }
 
                 }
+                else if (blockTypeID == (int)BlockType::Water) { //water block
+                    // TODO: Add Water
+                }
                 else {  //non-block
                     float textureCoordX = m_BlockTypes[blockTypeID].front.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].front.y;
-                    m_Vertices.insert(m_Vertices.end(), {
+                    m_BillBoardVertices.insert(m_BillBoardVertices.end(), {
                         position.x, position.y, position.z,
                         1.0f, 0.0f, -1.0f,
                         textureCoordX, textureCoordY,
@@ -327,27 +330,9 @@ void Chunk::Generate(unsigned int seed)
                         textureCoordX, textureCoordY + 1.0f / 32.0f
                         });
                     
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x + 1.0f, position.y, position.z + 1.0f,
-                        -1.0f, 0.0f, 1.0f,
-                        textureCoordX + 1.0f / 64.0f, textureCoordY,
-
-                        position.x, position.y, position.z,
-                        -1.0f, 0.0f, 1.0f,
-                        textureCoordX, textureCoordY,
-
-                        position.x, position.y + 1.0f, position.z,
-                        -1.0f, 0.0f, 1.0f,
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,
-
-                        position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,
-                        -1.0f, 0.0f, 1.0f,
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
-                        });
-
                     textureCoordX = m_BlockTypes[blockTypeID].back.x;
                     textureCoordY = m_BlockTypes[blockTypeID].back.y;
-                    m_Vertices.insert(m_Vertices.end(), {
+                    m_BillBoardVertices.insert(m_BillBoardVertices.end(), {
                         position.x, position.y, position.z + 1.0f,
                         -1.0f, 0.0f, -1.0f,
                         textureCoordX, textureCoordY,
@@ -363,24 +348,6 @@ void Chunk::Generate(unsigned int seed)
                         position.x, position.y + 1.0f, position.z + 1.0f,
                         -1.0f, 0.0f, -1.0f,
                         textureCoordX, textureCoordY + 1.0f / 32.0f
-                        });
-
-                    m_Vertices.insert(m_Vertices.end(), {
-                        position.x + 1.0f, position.y, position.z,
-                        1.0f, 0.0f, 1.0f,
-                        textureCoordX + 1.0f / 64.0f, textureCoordY,
-
-                        position.x, position.y, position.z + 1.0f,
-                        1.0f, 0.0f, 1.0f,
-                        textureCoordX, textureCoordY,
-
-                        position.x, position.y + 1.0f, position.z + 1.0f,
-                        1.0f, 0.0f, 1.0f,
-                        textureCoordX, textureCoordY + 1.0f / 32.0f,
-
-                        position.x + 1.0f, position.y + 1.0f, position.z,
-                        1.0f, 0.0f, 1.0f,
-                        textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f
                         });
                 }
 			}
@@ -398,6 +365,15 @@ void Chunk::Generate(unsigned int seed)
         m_Indices.push_back(i + 2);
         m_Indices.push_back(i + 3);
     }
+    vertexCount = m_BillBoardVertices.size() / 8;
+    for (unsigned int i = 0; i < vertexCount; i += 4) {
+        m_BillBoardIndices.push_back(i);
+        m_BillBoardIndices.push_back(i + 1);
+        m_BillBoardIndices.push_back(i + 2);
+        m_BillBoardIndices.push_back(i);
+        m_BillBoardIndices.push_back(i + 2);
+        m_BillBoardIndices.push_back(i + 3);
+    }
 
     m_Generated = true;
 
@@ -407,22 +383,59 @@ void Chunk::Generate(unsigned int seed)
 void Chunk::RenderInitialize(Shader* shader)
 {
     // Initialize For Rendering
-    // VAO
-    m_va = std::make_shared<VertexArray>();
-    m_va->Bind();
-    // VBO
-    m_vb = std::make_shared<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(float));
-    // IBO
-    m_ib = std::make_shared<IndexBuffer>(m_Indices.data(), m_Indices.size());
+    { // Solid
+        // VAO
+        auto vao = std::make_shared<VertexArray>();
+        vao->Bind();
+        // VBO
+        auto vbo = std::make_shared<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(float));
+        // IBO
+        auto ibo = std::make_shared<IndexBuffer>(m_Indices.data(), m_Indices.size());
 
-    VertexBufferLayout layout;
-    layout.Push<float>(3);
-    layout.Push<float>(3);
-    layout.Push<float>(2);
-    m_va->AddBuffer(*m_vb, layout);
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+        vao->AddBuffer(*vbo, layout);
+
+        m_va.push_back(vao);
+        m_vb.push_back(vbo);
+        m_ib.push_back(ibo);
+    }
+    { // BillBoard
+        auto vao = std::make_shared<VertexArray>();
+        vao->Bind();
+        auto vbo = std::make_shared<VertexBuffer>(m_BillBoardVertices.data(), m_BillBoardVertices.size() * sizeof(float));
+        auto ibo = std::make_shared<IndexBuffer>(m_BillBoardIndices.data(), m_BillBoardIndices.size());
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+        vao->AddBuffer(*vbo, layout);
+
+        m_va.push_back(vao);
+        m_vb.push_back(vbo);
+        m_ib.push_back(ibo);
+    }
+    { // Water
+        auto vao = std::make_shared<VertexArray>();
+        vao->Bind();
+        auto vbo = std::make_shared<VertexBuffer>(m_WaterVertices.data(), m_WaterVertices.size() * sizeof(float));
+        auto ibo = std::make_shared<IndexBuffer>(m_WaterIndices.data(), m_WaterIndices.size());
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+        vao->AddBuffer(*vbo, layout);
+
+        m_va.push_back(vao);
+        m_vb.push_back(vbo);
+        m_ib.push_back(ibo);
+    }
 
     //Bind shader file
-    m_renderer = std::make_shared<Renderer>(m_va, m_ib, shader);
+    m_renderer = std::make_shared<Renderer>(shader);
+    m_renderer->SetVAOIBO(m_va, m_ib);
     m_renderer->GenerateDepthMap();
 
     m_Initialized = true;

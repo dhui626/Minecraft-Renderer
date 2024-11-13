@@ -19,14 +19,13 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
-Renderer::Renderer(std::shared_ptr<VertexArray> va, std::shared_ptr<IndexBuffer> ib, Shader* shader)
-    :m_va(va), m_ib(ib), m_shader(shader)
+Renderer::Renderer(Shader* shader)
+    :m_shader(shader)
 {
-    glEnable(GL_DEPTH_TEST);
-    // Back Face Culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
+
+
+    m_va.reserve((int)VAOType::UNDIFINED);
+    m_ib.reserve((int)VAOType::UNDIFINED);
 }
 
 void Renderer::Clear() const
@@ -36,10 +35,45 @@ void Renderer::Clear() const
 
 void Renderer::Draw() const
 {
+    glEnable(GL_DEPTH_TEST);
+    // Back Face Culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
+
     m_shader->Bind();
-    m_va->Bind();
-    m_ib->Bind();
-    GLCall(glDrawElements(GL_TRIANGLES, m_ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+    for (int i = 0; i < (int)VAOType::UNDIFINED; i++)
+    {
+        m_va[i]->Bind();
+        m_ib[i]->Bind();
+        switch (i)
+        {
+        case (int)VAOType::Solid:
+            GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
+            break;
+        case (int)VAOType::Billboard:
+            glDisable(GL_CULL_FACE);
+            GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
+            break;
+        case (int)VAOType::Water:
+            GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void Renderer::SetVAOIBO(std::vector<std::shared_ptr<VertexArray>> va, std::vector<std::shared_ptr<IndexBuffer>> ib)
+{
+    assert(va.size() == (int)VAOType::UNDIFINED);
+    m_va.clear();
+    m_ib.clear();
+    for (int i = 0; i < (int)VAOType::UNDIFINED; i++)
+    {
+        m_va.push_back(va[i]);
+        m_ib.push_back(ib[i]);
+    }
 }
 
 void Renderer::ChangeShader(Shader* shader)
