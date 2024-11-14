@@ -49,7 +49,6 @@
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Shadow.shader" />
-    <None Include="res\shaders\Depth.shader" />
     <None Include="res\shaders\BillBoard.shader" />
     <None Include="res\shaders\Water.shader" />
   </ItemGroup>

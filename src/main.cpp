@@ -131,6 +131,16 @@ int main(void)
         // Water shader
         std::shared_ptr<Shader> waterShader = std::make_shared<Shader>("res/shaders/Water.shader");
         allShaders.emplace_back(waterShader);
+        waterShader->Bind();
+        waterShader->SetUniform1f("u_LightIntensity", lightIntensity);
+        waterShader->SetUniform1f("u_Kd", Kd);
+        waterShader->SetUniform1f("u_Ks", Ks);
+        waterShader->SetUniform1i("u_Texture", 0);
+        glm::vec3 waveParams[2] = {
+            glm::vec3(0.08f, 2.0f, 0.0f),
+            glm::vec3(0.03f, 3.0f, 1.57f)
+        };
+        glUniform3fv(glGetUniformLocation(waterShader->GetID(), "waveParams"), 2, &waveParams[0][0]);
 
         //world.SetRenderDistance(4);
 
@@ -233,6 +243,15 @@ int main(void)
                 billBoardShader->SetUniform1i("show_Shadow", settings.Shadow);
                 billBoardShader->SetUniform1i("show_PCF", settings.PCF);
                 billBoardShader->SetUniform1i("show_PCSS", settings.PCSS);
+
+                // Water shader
+                waterShader->Bind();
+                waterShader->SetUniformMat4f("u_Model", model);
+                waterShader->SetUniformMat4f("u_View", view);
+                waterShader->SetUniformMat4f("u_Proj", proj);
+                waterShader->SetUniform3f("u_CameraPos", camera.GetPosition());
+                waterShader->SetUniform3f("u_LightPos", lightPos);
+                waterShader->SetUniform1f("time", currentTime);
 
                 renderer->Draw();
             }

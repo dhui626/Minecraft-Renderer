@@ -7,8 +7,9 @@
 
 // Block Type
 enum class BlockType {
-	Air, Kusa, Daisy, Tulip, Dandelion, Poppy,   // non-cube
-	Grass, Dirt, Stone, Water, Sand, Wood,       // Cube 
+	Air, Kusa, Daisy, Tulip, Dandelion, Poppy,   // BillBoard
+	Water,	                              //fluid
+	Grass, Dirt, Stone, Sand, Wood,       // Cube 
 	UNDIFINED
 };
 

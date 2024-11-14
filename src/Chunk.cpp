@@ -91,6 +91,14 @@ void Chunk::LoadBlockTextures()
             m_BlockTypes[i].front = glm::vec2(21.0f / 64.0f, 11.0f / 32.0f);
             m_BlockTypes[i].back =  glm::vec2(21.0f / 64.0f, 11.0f / 32.0f);
             break;
+        case (int)BlockType::Water:
+            m_BlockTypes[i].left   = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
+            m_BlockTypes[i].right  = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
+            m_BlockTypes[i].top    = glm::vec2(7.0f  / 64.0f, 28.0f / 32.0f);
+            m_BlockTypes[i].bottom = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
+            m_BlockTypes[i].front  = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
+            m_BlockTypes[i].back   = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
+            break;
         default:
             break;
         }
@@ -102,6 +110,7 @@ void Chunk::Generate(unsigned int seed)
 	// NOTE: y value is the UP axis
 
     static OSN::Noise<2> noise2D(seed);
+    static int waterLevel = 18;
     //OSN::Noise<3> noise3D(seed);
 
     // Generating Step
@@ -131,6 +140,13 @@ void Chunk::Generate(unsigned int seed)
             // The top is Grass Block
             if (height > 0)
                 data[x + (height - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Grass;
+            // Water
+            if (height < waterLevel)
+            {
+                for (int y = height; y < waterLevel; y++)
+                    data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Water;
+                continue; // no need to generate flowers etc.
+            }
             // Random Kusa
             if (rand() % 20 == 0 && height != 0 && height <= m_ChunkSize)
                 data[x + height * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] = (int)BlockType::Kusa;
@@ -307,7 +323,29 @@ void Chunk::Generate(unsigned int seed)
 
                 }
                 else if (blockTypeID == (int)BlockType::Water) { //water block
-                    // TODO: Add Water
+                    float textureCoordX = m_BlockTypes[blockTypeID].top.x;
+                    float textureCoordY = m_BlockTypes[blockTypeID].top.y;
+                    if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] != (int)BlockType::Water)
+                    { 
+                        // only top face
+                        m_WaterVertices.insert(m_WaterVertices.end(), {
+                            position.x, position.y + 1.0f, position.z,
+                            0.0f, 1.0f, 0.0f,
+                            textureCoordX, textureCoordY,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z,
+                            0.0f, 1.0f, 0.0f,
+                            textureCoordX + 1.0f / 64.0f, textureCoordY,
+
+                            position.x + 1.0f, position.y + 1.0f, position.z + 1.0f,
+                            0.0f, 1.0f, 0.0f,
+                            textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f,
+
+                            position.x, position.y + 1.0f, position.z + 1.0f,
+                            0.0f, 1.0f, 0.0f,
+                            textureCoordX, textureCoordY + 1.0f / 32.0f
+                            });
+                    }
                 }
                 else {  //non-block
                     float textureCoordX = m_BlockTypes[blockTypeID].front.x;
@@ -373,6 +411,15 @@ void Chunk::Generate(unsigned int seed)
         m_BillBoardIndices.push_back(i);
         m_BillBoardIndices.push_back(i + 2);
         m_BillBoardIndices.push_back(i + 3);
+    }
+    vertexCount = m_WaterVertices.size() / 8;
+    for (unsigned int i = 0; i < vertexCount; i += 4) {
+        m_WaterIndices.push_back(i);
+        m_WaterIndices.push_back(i + 1);
+        m_WaterIndices.push_back(i + 2);
+        m_WaterIndices.push_back(i);
+        m_WaterIndices.push_back(i + 2);
+        m_WaterIndices.push_back(i + 3);
     }
 
     m_Generated = true;
