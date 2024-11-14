@@ -69,12 +69,13 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
     
-    //GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    //GLCall(glEnable(GL_BLEND));
+    GLCall(glEnable(GL_BLEND));
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     
     {
         // Generate Terrains
-        World world(32, 2, 1666154);
+        int renderDistance = 2;
+        World world(32, renderDistance, 1666154);
 
         /* Camera */ 
         Camera camera(45.0f, 0.1f, 100.0f, window);
@@ -142,7 +143,6 @@ int main(void)
         };
         glUniform3fv(glGetUniformLocation(waterShader->GetID(), "waveParams"), 2, &waveParams[0][0]);
 
-        //world.SetRenderDistance(4);
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -156,6 +156,7 @@ int main(void)
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            world.SetRenderDistance(renderDistance);
             world.Update(allShaders, camera.GetPosition());
             auto chunkData = world.GetChunkData();
 
@@ -198,62 +199,69 @@ int main(void)
                 glClear(GL_DEPTH_BUFFER_BIT);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
+
             glViewport(0, 0, width, height);
             glm::vec3 backgroundColor = glm::mix(glm::vec3(0.67f, 0.90f, 0.90f), glm::vec3(1.0f, 0.8f, 0.3f), (glm::normalize(lightDir).y + 1.0f) * 0.5f);
             glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            //Uniforms
+            model = glm::translate(glm::mat4{ 1.0 }, translation);
+            view = camera.GetView();
+            proj = camera.GetProjection();
+
+            // Basic Shader
+            shader->Bind();
+            shader->SetUniform1i("u_ShadowMap", 1);
+            shader->SetUniformMat4f("u_Model", model);
+            shader->SetUniformMat4f("u_View", view);
+            shader->SetUniformMat4f("u_Proj", proj);
+            shader->SetUniform3f("u_CameraPos", camera.GetPosition());
+            shader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+            shader->SetUniform3f("u_LightPos", lightPos);
+            shader->SetUniform1i("show_Shadow", settings.Shadow);
+            shader->SetUniform1i("show_PCF", settings.PCF);
+            shader->SetUniform1i("show_PCSS", settings.PCSS);
+
+            // BillBoard shader
+            billBoardShader->Bind();
+            billBoardShader->SetUniform1i("u_ShadowMap", 1);
+            billBoardShader->SetUniformMat4f("u_Model", model);
+            billBoardShader->SetUniformMat4f("u_View", view);
+            billBoardShader->SetUniformMat4f("u_Proj", proj);
+            billBoardShader->SetUniform3f("u_CameraPos", camera.GetPosition());
+            billBoardShader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
+            billBoardShader->SetUniform3f("u_LightPos", lightPos);
+            billBoardShader->SetUniform1i("show_Shadow", settings.Shadow);
+            billBoardShader->SetUniform1i("show_PCF", settings.PCF);
+            billBoardShader->SetUniform1i("show_PCSS", settings.PCSS);
+
+            // Water shader
+            waterShader->Bind();
+            waterShader->SetUniformMat4f("u_Model", model);
+            waterShader->SetUniformMat4f("u_View", view);
+            waterShader->SetUniformMat4f("u_Proj", proj);
+            waterShader->SetUniform3f("u_CameraPos", camera.GetPosition());
+            waterShader->SetUniform3f("u_LightPos", lightPos);
+            waterShader->SetUniform1f("time", currentTime);
+
+            // ShadowMap : Second pass
             for (auto entry : chunkData)
             {
                 auto currentChunk = entry.second;
                 std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
-                // ShadowMap : Second pass
-                shader->Bind();
                 renderer->ChangeShader(allShaders);
-                texture.Bind(0);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, renderer->GetDepthMap());
-                shader->SetUniform1i("u_ShadowMap", 1);
-
-                //Uniforms
-                model = glm::translate(glm::mat4{ 1.0 }, translation);
-                shader->SetUniformMat4f("u_Model", model);
-
-                view = camera.GetView();
-                shader->SetUniformMat4f("u_View", view);
-
-                proj = camera.GetProjection();
-                shader->SetUniformMat4f("u_Proj", proj);
-
-                shader->SetUniform3f("u_CameraPos", camera.GetPosition());
-                shader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-                shader->SetUniform3f("u_LightPos", lightPos);
-                shader->SetUniform1i("show_Shadow", settings.Shadow);
-                shader->SetUniform1i("show_PCF", settings.PCF);
-                shader->SetUniform1i("show_PCSS", settings.PCSS);
-
-                // BillBoard shader
-                billBoardShader->Bind();
-                billBoardShader->SetUniform1i("u_ShadowMap", 1);
-                billBoardShader->SetUniformMat4f("u_Model", model);
-                billBoardShader->SetUniformMat4f("u_View", view);
-                billBoardShader->SetUniformMat4f("u_Proj", proj);
-                billBoardShader->SetUniform3f("u_CameraPos", camera.GetPosition());
-                billBoardShader->SetUniformMat4f("u_LightPV", lightSpaceMatrix);
-                billBoardShader->SetUniform3f("u_LightPos", lightPos);
-                billBoardShader->SetUniform1i("show_Shadow", settings.Shadow);
-                billBoardShader->SetUniform1i("show_PCF", settings.PCF);
-                billBoardShader->SetUniform1i("show_PCSS", settings.PCSS);
-
-                // Water shader
-                waterShader->Bind();
-                waterShader->SetUniformMat4f("u_Model", model);
-                waterShader->SetUniformMat4f("u_View", view);
-                waterShader->SetUniformMat4f("u_Proj", proj);
-                waterShader->SetUniform3f("u_CameraPos", camera.GetPosition());
-                waterShader->SetUniform3f("u_LightPos", lightPos);
-                waterShader->SetUniform1f("time", currentTime);
 
                 renderer->Draw();
+            }
+            for (auto entry : chunkData)
+            {
+                auto currentChunk = entry.second;
+                std::shared_ptr<Renderer> renderer = currentChunk->GetRenderer();
+
+                renderer->DrawWater();
             }
           
             ImGui_ImplOpenGL3_NewFrame();
@@ -279,6 +287,7 @@ int main(void)
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
                 ImGui::Text("Rendering Time: %.0f ms", deltaTime * 1000);
                 ImGui::Text("Loaded Chunks: %d", world.GetChunkData().size());
+                ImGui::DragInt("Render Distance", &renderDistance, 1, 0, 8);
                 ImGui::End();
             }
             {

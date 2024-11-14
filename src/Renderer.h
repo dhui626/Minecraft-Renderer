@@ -31,6 +31,7 @@ public:
 
 	void Clear() const;
 	void Draw() const;
+	void DrawWater() const;
 	
 	//std::vector<std::shared_ptr<VertexArray>> GetVAO() const { return m_va; };
 	//std::vector<std::shared_ptr<IndexBuffer>> GetIBO() const { return m_ib; };

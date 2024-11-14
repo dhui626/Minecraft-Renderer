@@ -52,15 +52,21 @@ void Renderer::Draw() const
         case (int)VAOType::Billboard:
             glDisable(GL_CULL_FACE);
             GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
-            break;
-        case (int)VAOType::Water:
             glEnable(GL_CULL_FACE);
-            GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
             break;
         default:
             break;
         }
     }
+}
+
+void Renderer::DrawWater() const
+{
+    int i = (int)VAOType::Water;
+    m_shader[i]->Bind();
+    m_va[i]->Bind();
+    m_ib[i]->Bind();
+    GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
 void Renderer::SetVAOIBO(std::vector<std::shared_ptr<VertexArray>> va, std::vector<std::shared_ptr<IndexBuffer>> ib)

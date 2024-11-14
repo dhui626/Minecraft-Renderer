@@ -21,9 +21,9 @@ void main()
     float height = 0.0;
     float maxAmplitude = 0.0;
     for (int i = 0; i < 2; i++) {
-        float amplitude = waveParams[i].x; // 振幅
-        float wavelength = waveParams[i].y; // 波长
-        float direction = waveParams[i].z; // 方向（以弧度表示）
+        float amplitude = waveParams[i].x;
+        float wavelength = waveParams[i].y;
+        float direction = waveParams[i].z;
         float k = 2.0 * 3.14159 / wavelength;
         height += amplitude * cos(k * (position.x * cos(direction) + position.z * sin(direction)) + time);
         maxAmplitude += amplitude;
@@ -73,5 +73,5 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
-    gl_FragColor = vec4(pow(ambient + diffuse + specular, vec3(1.0/2.2)), 0.5);
+    gl_FragColor = vec4(pow(ambient + diffuse + specular, vec3(1.0/2.2)), 0.8);
 };
