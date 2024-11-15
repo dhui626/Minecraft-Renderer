@@ -43,7 +43,7 @@ int main(void)
     /* Create a windowed mode window and its OpenGL context */
     int width = 1280;
     int height = 720;
-    window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Mini Minecraft Renderer", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -137,11 +137,13 @@ int main(void)
         waterShader->SetUniform1f("u_Kd", Kd);
         waterShader->SetUniform1f("u_Ks", Ks);
         waterShader->SetUniform1i("u_Texture", 0);
-        glm::vec3 waveParams[2] = {
-            glm::vec3(0.08f, 2.0f, 0.0f),
-            glm::vec3(0.03f, 3.0f, 1.57f)
+        glm::vec3 waveParams[4] = {
+            glm::vec3(0.06f, 2.0f, 0.0f),
+            glm::vec3(0.03f, 3.0f, 1.57f),
+            glm::vec3(0.02f, 10.0f, 0.7f),
+            glm::vec3(0.01f, 50.0f, 8.8f)
         };
-        glUniform3fv(glGetUniformLocation(waterShader->GetID(), "waveParams"), 2, &waveParams[0][0]);
+        glUniform3fv(glGetUniformLocation(waterShader->GetID(), "waveParams"), 4, &waveParams[0][0]);
 
 
         /* Loop until the user closes the window */

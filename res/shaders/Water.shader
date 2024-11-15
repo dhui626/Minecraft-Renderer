@@ -10,30 +10,40 @@ uniform mat4 u_Model;
 uniform mat4 u_View;
 uniform mat4 u_Proj;
 uniform float time;
-uniform vec3 waveParams[2];
+uniform vec3 waveParams[4];
 
 out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
 
+float animationTime = 5.0;
+
 void main()
 {
+    // waves
     float height = 0.0;
+    float horizonal = 0.0;
     float maxAmplitude = 0.0;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 4; i++) {
         float amplitude = waveParams[i].x;
         float wavelength = waveParams[i].y;
         float direction = waveParams[i].z;
         float k = 2.0 * 3.14159 / wavelength;
-        height += amplitude * cos(k * (position.x * cos(direction) + position.z * sin(direction)) + time);
+        float parse = k * (position.x * cos(direction) + position.z * sin(direction)) + time;
+        height += amplitude * cos(parse);
+        horizonal -= amplitude * sin(parse);
         maxAmplitude += amplitude;
     }
-    vec4 wavedPosition = vec4(position.x, position.y - maxAmplitude + height, position.z, 1);
-
-    v_Normal =  (u_Model * vec4(normal, 0.0)).xyz;
-    v_TexCoord = texCoord;
+    vec4 wavedPosition = vec4(position.x + horizonal, position.y - maxAmplitude + height, position.z + horizonal, 1);
     gl_Position = u_Proj * u_View * u_Model * wavedPosition;
     v_FragPos = (u_Model * wavedPosition).xyz;
+
+    v_Normal =  (u_Model * vec4(normal, 0.0)).xyz;
+
+    // Texture Coords (4 water textures)
+    v_TexCoord = texCoord;
+    v_TexCoord.x += floor(mod(time / animationTime, 2)) * 1.0f / 64.0f;
+	v_TexCoord.y += floor(mod(time / animationTime * 2, 2)) * 1.0f / 32.0f;
 };
 
 

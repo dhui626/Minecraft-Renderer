@@ -94,7 +94,7 @@ void Chunk::LoadBlockTextures()
         case (int)BlockType::Water:
             m_BlockTypes[i].left   = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
             m_BlockTypes[i].right  = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
-            m_BlockTypes[i].top    = glm::vec2(7.0f  / 64.0f, 28.0f / 32.0f);
+            m_BlockTypes[i].top    = glm::vec2(6.0f  / 64.0f, 28.0f / 32.0f);
             m_BlockTypes[i].bottom = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
             m_BlockTypes[i].front  = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
             m_BlockTypes[i].back   = glm::vec2(63.0f / 64.0f, 0.0f / 32.0f);
