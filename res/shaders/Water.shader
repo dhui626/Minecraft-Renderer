@@ -10,13 +10,19 @@ uniform mat4 u_Model;
 uniform mat4 u_View;
 uniform mat4 u_Proj;
 uniform float time;
-uniform vec3 waveParams[4];
 
 out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
 
 float animationTime = 5.0;
+// wave parameter
+const vec3 waveParams[] = vec3[](
+    vec3(0.06f, 2.0f, 0.0f),
+    vec3(0.03f, 3.0f, 1.57f),
+    vec3(0.02f, 10.0f, 0.7f),
+    vec3(0.01f, 50.0f, 8.8f)
+);
 
 void main()
 {

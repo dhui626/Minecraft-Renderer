@@ -11,6 +11,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "FrameBuffer.h"
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
 #include "Texture.h"
@@ -137,14 +138,14 @@ int main(void)
         waterShader->SetUniform1f("u_Kd", Kd);
         waterShader->SetUniform1f("u_Ks", Ks);
         waterShader->SetUniform1i("u_Texture", 0);
-        glm::vec3 waveParams[4] = {
-            glm::vec3(0.06f, 2.0f, 0.0f),
-            glm::vec3(0.03f, 3.0f, 1.57f),
-            glm::vec3(0.02f, 10.0f, 0.7f),
-            glm::vec3(0.01f, 50.0f, 8.8f)
-        };
-        glUniform3fv(glGetUniformLocation(waterShader->GetID(), "waveParams"), 4, &waveParams[0][0]);
 
+        // Post-Processing FBO
+        std::shared_ptr<Shader> frameBufferShader = std::make_shared<Shader>("res/shaders/FrameBuffer.shader");
+        FrameBuffer fbo(width, height);
+
+        frameBufferShader->Bind();
+        frameBufferShader->SetUniform1i("screenTexture", fbo.GetFBOTexture());
+        frameBufferShader->SetUniform1i("depthTexture", fbo.GetDepthTexture());
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -194,18 +195,18 @@ int main(void)
                     texture.Bind(0);
                     renderer->Draw();
                 }
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
             else {
                 glBindFramebuffer(GL_FRAMEBUFFER, DepthFBO);
                 glClear(GL_DEPTH_BUFFER_BIT);
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
 
+            fbo.Bind();
             glViewport(0, 0, width, height);
             glm::vec3 backgroundColor = glm::mix(glm::vec3(0.67f, 0.90f, 0.90f), glm::vec3(1.0f, 0.8f, 0.3f), (glm::normalize(lightDir).y + 1.0f) * 0.5f);
             glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
 
             //Uniforms
             model = glm::translate(glm::mat4{ 1.0 }, translation);
@@ -265,6 +266,9 @@ int main(void)
 
                 renderer->DrawWater();
             }
+
+            frameBufferShader->Bind();
+            fbo.Render();
           
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -295,6 +299,11 @@ int main(void)
             {
                 ImGui::Begin("Shadow Map Texture");
                 ImGui::Image((void*)(intptr_t)DepthMapID, ImVec2(512, 512), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
+                ImGui::End();
+            }
+            {
+                ImGui::Begin("Frame Buffer Texture");
+                ImGui::Image((void*)(intptr_t)fbo.GetFBOTexture(), ImVec2(512, 288), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
                 ImGui::End();
             }
             ImGui::Render();
