@@ -268,6 +268,10 @@ int main(void)
             }
 
             frameBufferShader->Bind();
+            if (camera.GetPosition().y < 18)
+                frameBufferShader->SetUniform1i("underwater", 1);
+            else
+                frameBufferShader->SetUniform1i("underwater", 0);
             fbo.Render();
           
             ImGui_ImplOpenGL3_NewFrame();

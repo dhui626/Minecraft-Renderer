@@ -80,7 +80,9 @@ void FrameBuffer::Render() const
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindVertexArray(m_rectVAO);
-    glActiveTexture(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE0 + m_FrameBufferTexture);
     glBindTexture(GL_TEXTURE_2D, m_FrameBufferTexture);
+    glActiveTexture(GL_TEXTURE0 + m_DepthTexture);
+    glBindTexture(GL_TEXTURE_2D, m_DepthTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
