@@ -28,8 +28,10 @@ struct Settings
     bool PCSS = false;
     float brightness = 0.0f;
     float contrast = 1.0f;
-    float gamma = 2.2f;
+    float saturation = 1.2f;
+    float gamma = 1.8f;
     bool foggy = true;
+    bool bloom = false;
 };
 
 int main(void)
@@ -102,9 +104,9 @@ int main(void)
         glm::vec3 lightDir{ -1.0f, -3.0f, -2.0f };
         float lightIntensity = 3.0f;
         shader->SetUniform1f("u_LightIntensity", lightIntensity);
-        float Kd = 1.0f; //diffuse K
+        float Kd = 0.3f; //diffuse K
         shader->SetUniform1f("u_Kd", Kd);
-        float Ks = 1.0f; //specular K
+        float Ks = 0.05f; //specular K
         shader->SetUniform1f("u_Ks", Ks);
 
         // Texture
@@ -256,8 +258,10 @@ int main(void)
             frameBufferShader->Bind();
             frameBufferShader->SetUniform1f("brightness", settings.brightness);
             frameBufferShader->SetUniform1f("contrast", settings.contrast);
+            frameBufferShader->SetUniform1f("saturation", settings.saturation);
             frameBufferShader->SetUniform1f("gamma", settings.gamma);
             frameBufferShader->SetUniform1i("foggy", settings.foggy);
+            frameBufferShader->SetUniform1i("bloom", settings.bloom);
 
             // ShadowMap : Second pass
             for (auto entry : chunkData)
@@ -316,8 +320,11 @@ int main(void)
                 {
                     ImGui::DragFloat("Brightness", &settings.brightness, 0.01f);
                     ImGui::DragFloat("Contrast", &settings.contrast, 0.01f);
+                    ImGui::DragFloat("Saturation", &settings.saturation, 0.01f);
                     ImGui::DragFloat("Gamma Correction", &settings.gamma, 0.01f);
                     ImGui::Checkbox("Foggy", &settings.foggy);
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Bloom", &settings.bloom);
                 }
                 ImGui::End();
             }

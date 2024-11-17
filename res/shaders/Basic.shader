@@ -171,22 +171,21 @@ void main()
     if(texture2D(u_Texture, v_TexCoord).a == 0) //Transparent part
         discard;
 
-    vec3 color = pow(texture2D(u_Texture, v_TexCoord).rgb, vec3(2.2));
+    vec3 color = texture2D(u_Texture, v_TexCoord).rgb;
 
     // Blinn-Phong Light Model
     // ambient term
-    vec3 ambient = 0.05 * color;
+    vec3 ambient = 0.15 * color;
     // diffuse term
     vec3 lightDir = normalize(u_LightPos - v_FragPos);
     vec3 normal = normalize(v_Normal);
     float diff = max(dot(lightDir, normal), 0.0);
-    // float light_atten_coff = u_LightIntensity / length(u_LightPos - v_FragPos); // Point light
     float light_atten_coff = u_LightIntensity ; // Sun light
-    vec3 diffuse =  diff * light_atten_coff * color;
+    vec3 diffuse = u_Kd * light_atten_coff * diff  * color;
     // specular term
     vec3 viewDir = normalize(u_CameraPos - v_FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
     float visibility = 1.0;
