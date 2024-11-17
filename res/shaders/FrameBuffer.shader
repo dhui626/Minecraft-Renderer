@@ -27,12 +27,23 @@ const vec3 fogColor = vec3(0, 0, 0.25);
 const float fogNear = 0.99;
 const float fogFar = 1.0;
 
+uniform float brightness;
+uniform float contrast;
+uniform float gamma;
+
 void main()
 {
     vec3 color = texture2D(screenTexture, v_TexCoord).xyz;
     float depth = texture2D(depthTexture, v_TexCoord).r;
-    depth = pow(depth, 1.0);
-    vec3 finalColor = color;
+   
+    // Brightness
+    color += brightness;
+    // Contrast
+    color = ((color - 0.5) * contrast) + 0.5;
+    // Gamma Correction
+    color = pow(color, vec3(1.0 / gamma));
+
+    vec3 finalColor = clamp(color, 0.0, 1.0);
     // Screen Space Fog
     if (bool(underwater))
 	{

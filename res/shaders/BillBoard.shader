@@ -208,5 +208,5 @@ void main()
         }
     }
 
-    gl_FragColor = vec4(pow(ambient + visibility * (diffuse + specular), vec3(1.0/2.2)), 1.0);
+    gl_FragColor = vec4(ambient + visibility * (diffuse + specular), 1.0);
 };

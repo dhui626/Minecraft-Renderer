@@ -89,5 +89,5 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 512.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
-    gl_FragColor = vec4(pow(ambient + diffuse + specular, vec3(1.0/2.2)), 0.8);
+    gl_FragColor = vec4(ambient + diffuse + specular, 0.8);
 };
