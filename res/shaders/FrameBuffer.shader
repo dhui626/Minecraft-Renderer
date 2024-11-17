@@ -22,9 +22,12 @@ in vec2 v_TexCoord;
 uniform sampler2D screenTexture;
 uniform sampler2D depthTexture;
 uniform int underwater;
+uniform int foggy;
 
-const vec3 fogColor = vec3(0, 0, 0.25);
-const float fogNear = 0.99;
+const vec3 waterColor = vec3(0, 0.2, 0.4);
+const vec3 fogColor = vec3(1.0, 1.0, 1.0);
+const float waterNear = 0.95;
+const float fogNear = 0.996;
 const float fogFar = 1.0;
 
 uniform float brightness;
@@ -47,11 +50,15 @@ void main()
     // Screen Space Fog
     if (bool(underwater))
 	{
-		float fogFactor = (fogFar - depth) / (fogFar - fogNear);
+		float fogFactor = (fogFar - depth) / (fogFar - waterNear);
 		fogFactor = clamp(fogFactor, 0.0, 1.0);
-
-		finalColor = mix(fogColor, color, fogFactor);
+		finalColor = mix(waterColor, color, fogFactor);
 	}
+    else if (bool(foggy)){
+        float fogFactor = (fogFar - depth) / (fogFar - fogNear);
+		fogFactor = clamp(fogFactor, 0.0, 1.0);
+		finalColor = mix(fogColor, color, fogFactor);
+    }
 
     gl_FragColor = vec4(vec3(finalColor), 1.0);
 };

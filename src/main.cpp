@@ -29,6 +29,7 @@ struct Settings
     float brightness = 0.0f;
     float contrast = 1.0f;
     float gamma = 2.2f;
+    bool foggy = true;
 };
 
 int main(void)
@@ -256,6 +257,7 @@ int main(void)
             frameBufferShader->SetUniform1f("brightness", settings.brightness);
             frameBufferShader->SetUniform1f("contrast", settings.contrast);
             frameBufferShader->SetUniform1f("gamma", settings.gamma);
+            frameBufferShader->SetUniform1i("foggy", settings.foggy);
 
             // ShadowMap : Second pass
             for (auto entry : chunkData)
@@ -301,7 +303,7 @@ int main(void)
                     if (settings.PCSS)
                         settings.PCF = false;
                 }
-                ImGui::DragInt("Render Distance", &renderDistance, 1, 0, 8);
+                ImGui::DragInt("Render Distance", &renderDistance, 1, 1, 6);
                 ImGui::Text("Camera Position: (%f, %f, %f)", 
                     camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
@@ -315,6 +317,7 @@ int main(void)
                     ImGui::DragFloat("Brightness", &settings.brightness, 0.01f);
                     ImGui::DragFloat("Contrast", &settings.contrast, 0.01f);
                     ImGui::DragFloat("Gamma Correction", &settings.gamma, 0.01f);
+                    ImGui::Checkbox("Foggy", &settings.foggy);
                 }
                 ImGui::End();
             }
