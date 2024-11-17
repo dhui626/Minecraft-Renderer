@@ -40,15 +40,6 @@ void World::Generate(unsigned int seed)
 	}
 }
 
-//void World::BindShader(Shader* shader)
-//{
-//	for (auto entry : m_ChunkData)
-//	{
-//		auto chunkPtr = entry.second;
-//		chunkPtr->RenderInitialize(shader);
-//	}
-//}
-
 void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 cameraPos)
 {
 	if (!m_ChunkQueue.empty())
@@ -66,17 +57,20 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 		}
 	}
 	
-	glm::uvec3 currentChunkPos = glm::vec3(cameraPos.x / m_ChunkSize, cameraPos.y / m_ChunkSize, cameraPos.z / m_ChunkSize);
+	int currentChunkX = cameraPos.x < 0 ? cameraPos.x / m_ChunkSize - 1 : cameraPos.x / m_ChunkSize;
+	int currentChunkY = cameraPos.y < 0 ? cameraPos.y / m_ChunkSize - 1 : cameraPos.y / m_ChunkSize;
+	int currentChunkZ = cameraPos.z < 0 ? cameraPos.z / m_ChunkSize - 1 : cameraPos.z / m_ChunkSize;
+	glm::ivec3 currentChunkPos{ currentChunkX ,currentChunkY,currentChunkZ };
 	if (currentChunkPos != lastChunkPos)
 	{
 		// Generate new chunks
 		int gridNum = 2 * m_RenderDistance - 1;
-		for (int i = 0; i <= gridNum; i++)
+		for (int i = 0; i < gridNum; i++)
 		{
-			for (int j = 0; j <= gridNum; j++)
+			for (int j = 0; j < gridNum; j++)
 			{
-				std::pair<int, int> key = { i - m_RenderDistance + currentChunkPos.x,
-					j - m_RenderDistance + currentChunkPos.z };
+				std::pair<int, int> key = { i - m_RenderDistance + currentChunkPos.x + 1,
+					j - m_RenderDistance + currentChunkPos.z + 1 };
 				if (m_ChunkData.find(key) == m_ChunkData.end()) // not generated
 				{
 					m_ChunkQueue.push(key);
@@ -86,8 +80,8 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 		// Delete faraway chunks
 		for (auto it = m_ChunkData.begin(); it != m_ChunkData.end();) {
 			std::pair<int, int> key = it->first;
-			if (abs(key.first - (int)currentChunkPos.x) > m_RenderDistance ||
-				abs(key.second - (int)currentChunkPos.z) > m_RenderDistance)
+			if (abs(key.first - (int)currentChunkPos.x) >= m_RenderDistance ||
+				abs(key.second - (int)currentChunkPos.z) >= m_RenderDistance)
 			{
 				//entry.second->~Chunk();  // Deleted automatically
 				it = m_ChunkData.erase(it);
@@ -103,7 +97,7 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 	lastChunkPos = currentChunkPos;
 }
 
-glm::uvec3 World::GetCurrentChunkPos()
+glm::ivec3 World::GetCurrentChunkPos()
 {
 	return lastChunkPos;
 }

@@ -25,7 +25,7 @@ public:
 	void SetRenderDistance(int distance);
 	void Generate(unsigned int seed);
 	void Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 cameraPos);
-	glm::uvec3 GetCurrentChunkPos();
+	glm::ivec3 GetCurrentChunkPos();
 
 	size_t GetChunkNum();
 	std::unordered_map<std::pair<int, int>, std::shared_ptr<Chunk>, pair_hash> GetChunkData();
@@ -34,7 +34,7 @@ private:
 	int m_RenderDistance = 1;
 	int m_ChunkSize;
 	unsigned int m_Seed = 0;
-	glm::uvec3 lastChunkPos;
+	glm::ivec3 lastChunkPos;
 
 	std::unordered_map<std::pair<int, int>, std::shared_ptr<Chunk>, pair_hash> m_ChunkData;
 	std::queue<std::pair<int, int>> m_ChunkQueue;
