@@ -20,6 +20,7 @@ void main()
 in vec2 v_TexCoord;
 
 uniform sampler2D screenTexture;
+uniform sampler2D brightTexture;
 uniform sampler2D depthTexture;
 uniform int underwater;
 
@@ -36,18 +37,7 @@ uniform float saturation;
 uniform int foggy;
 uniform int bloom;
 
-const float offset = 1.0 / 720.0;  
-const vec2 offsets[9] = vec2[](
-    vec2(-offset,  offset),
-    vec2( 0.0f,    offset),
-    vec2( offset,  offset),
-    vec2(-offset,  0.0f),  
-    vec2( 0.0f,    0.0f),  
-    vec2( offset,  0.0f),  
-    vec2(-offset, -offset),
-    vec2( 0.0f,   -offset),
-    vec2( offset, -offset) 
-);
+const float weight[5] = float[] (0.227027, 0.0972973, 0.0608108, 0.027027, 0.008108);
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -86,21 +76,21 @@ void main()
     // Bloom
     if(bool(bloom))
     {
-        float kernel[9] = float[](
-            1.0 / 16, 2.0 / 16, 1.0 / 16,
-            2.0 / 16, 4.0 / 16, 2.0 / 16,
-            1.0 / 16, 2.0 / 16, 1.0 / 16  
-        );
+        vec2 tex_offset = 1.0 / textureSize(brightTexture, 0); // gets size of single texel
+        vec3 blurredColor = texture(brightTexture, v_TexCoord).rgb * weight[0]; // current fragment's contribution
+        // Gaussian Blur 5¡Á5
+        for(int i = 1; i < 5; ++i) //horizontal
+        {
+            blurredColor += texture(brightTexture, v_TexCoord + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            blurredColor += texture(brightTexture, v_TexCoord - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+        }
+        for(int i = 1; i < 5; ++i) //vertical
+        {
+            blurredColor += texture(brightTexture, v_TexCoord + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+            blurredColor += texture(brightTexture, v_TexCoord - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+        }
 
-        vec3 sampleTex[9];
-        for(int i = 0; i < 9; i++)
-            sampleTex[i] = vec3(texture(screenTexture, v_TexCoord.st + offsets[i]));
-
-        vec3 blurredColor = vec3(0.0);
-        for(int i = 0; i < 9; i++)
-            blurredColor += sampleTex[i] * kernel[i];
-    
-        color = color + (blurredColor - color) * 0.5;
+        color = color + blurredColor;
     }
     color = clamp(color, 0.0, 1.0);
     vec3 finalColor = vec3(0.0);

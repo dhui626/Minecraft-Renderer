@@ -23,6 +23,7 @@ float lastFrameTime = 0.0f;
 
 struct Settings
 {
+    float cameraSpeed = 2.0f;
     bool Shadow = true;
     bool PCF = true;
     bool PCSS = false;
@@ -31,7 +32,7 @@ struct Settings
     float saturation = 1.2f;
     float gamma = 1.8f;
     bool foggy = true;
-    bool bloom = false;
+    bool bloom = true;
 };
 
 int main(void)
@@ -85,7 +86,7 @@ int main(void)
         World world(32, renderDistance, 1666154);
 
         /* Camera */ 
-        Camera camera(45.0f, 0.1f, 100.0f, window);
+        Camera camera(45.0f, 0.1f, 200.0f, window);
         camera.OnResize(width, height);
         camera.SetPosition(glm::vec3(0.0, 20.0, 0.0));
         //MVP matrix
@@ -150,17 +151,18 @@ int main(void)
         FrameBuffer fbo(width, height);
 
         frameBufferShader->Bind();
-        frameBufferShader->SetUniform1i("screenTexture", fbo.GetFBOTexture());
+        frameBufferShader->SetUniform1i("screenTexture", fbo.GetFBOTexture()[0]);
+        frameBufferShader->SetUniform1i("brightTexture", fbo.GetFBOTexture()[1]);
         frameBufferShader->SetUniform1i("depthTexture", fbo.GetDepthTexture());
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Press Input */
-            camera.OnUpdate(1.0f / 60.0f); // 60hz
             float currentTime = static_cast<float>(glfwGetTime());
             deltaTime = currentTime - lastFrameTime;
             lastFrameTime = currentTime;
+            camera.OnUpdate(settings.cameraSpeed * deltaTime);
 
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -313,6 +315,7 @@ int main(void)
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
                 ImGui::Text("Rendering Time: %.0f ms", deltaTime * 1000);
                 ImGui::Text("Loaded Chunks: %d", world.GetChunkData().size());
+                ImGui::DragFloat("Camera Speed", &settings.cameraSpeed, 0.1f, 0.0f, std::numeric_limits<float>::max());
                 ImGui::End();
             }
             {
@@ -322,7 +325,7 @@ int main(void)
                     ImGui::DragFloat("Contrast", &settings.contrast, 0.01f);
                     ImGui::DragFloat("Saturation", &settings.saturation, 0.01f);
                     ImGui::DragFloat("Gamma Correction", &settings.gamma, 0.01f);
-                    ImGui::Checkbox("Foggy", &settings.foggy);
+                    ImGui::Checkbox("Screen Space Fog", &settings.foggy);
                     ImGui::SameLine();
                     ImGui::Checkbox("Bloom", &settings.bloom);
                 }
@@ -335,7 +338,7 @@ int main(void)
             }
             {
                 ImGui::Begin("Frame Buffer Texture");
-                ImGui::Image((void*)(intptr_t)fbo.GetFBOTexture(), ImVec2(512, 288), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
+                ImGui::Image((void*)(intptr_t)fbo.GetFBOTexture()[0], ImVec2(512, 288), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f)); // 设定纹理显示大小
                 ImGui::End();
             }
             ImGui::Render();

@@ -12,11 +12,11 @@ public:
 	void Render() const;
 
 	unsigned int GetID() { return m_RendererID; }
-	unsigned int GetFBOTexture() { return m_FrameBufferTexture; }
+	unsigned int* GetFBOTexture() { return m_FrameBufferTexture; }
 	unsigned int GetDepthTexture() { return m_DepthTexture; }
 
 private:
 	unsigned int m_RendererID;
-	unsigned int m_FrameBufferTexture, m_DepthTexture;
+	unsigned int m_FrameBufferTexture[2], m_DepthTexture;
 	unsigned int m_rectVAO, m_rectVBO;
 };
