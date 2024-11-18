@@ -24,7 +24,7 @@ uniform sampler2D brightTexture;
 uniform sampler2D depthTexture;
 uniform int underwater;
 
-const vec3 waterColor = vec3(0, 0.2, 0.4);
+const vec3 waterColor = vec3(0.1, 0.3, 0.6);
 const vec3 fogColor = vec3(1.0, 1.0, 1.0);
 const float waterNear = 0.95;
 const float fogNear = 0.996;
@@ -36,6 +36,10 @@ uniform float gamma;
 uniform float saturation;
 uniform int foggy;
 uniform int bloom;
+uniform int reinhard;
+uniform int ce;
+uniform int filmic;
+uniform int aces;
 uniform float exposure;
 
 const float weight[5] = float[] (0.227027, 0.0972973, 0.0608108, 0.027027, 0.008108);
@@ -56,6 +60,36 @@ vec3 hsv2rgb(vec3 c)
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 ACESToneMapping(vec3 color, float adapted_lum)
+{
+	const float A = 2.51f;
+	const float B = 0.03f;
+	const float C = 2.43f;
+	const float D = 0.59f;
+	const float E = 0.14f;
+
+	color *= adapted_lum;
+	return (color * (A * color + B)) / (color * (C * color + D) + E);
+}
+
+vec3 F(vec3 x)
+{
+	const float A = 0.22f;
+	const float B = 0.30f;
+	const float C = 0.10f;
+	const float D = 0.20f;
+	const float E = 0.01f;
+	const float F = 0.30f;
+ 
+	return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+}
+
+vec3 Uncharted2ToneMapping(vec3 color, float adapted_lum)
+{
+	const float WHITE = 11.2f;
+	return F(1.6f * adapted_lum * color) / F(vec3(WHITE));
 }
 
 void main()
@@ -101,7 +135,7 @@ void main()
 	}
     else if (bool(foggy)){
         float fogFactor = clamp((depth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
-		fogFactor = pow(fogFactor, 3.0);
+		fogFactor = pow(fogFactor, 2.0);
 		finalColor = mix(color, fogColor, fogFactor);
     }
     else{
@@ -109,7 +143,16 @@ void main()
     }
 
     // Tone Mapping
-    vec3 mapped = vec3(1.0) - exp(-finalColor * exposure);
+    vec3 mapped = finalColor;
+    if(bool(reinhard))
+        mapped = mapped * exposure / (1.0 + mapped * exposure);
+    if(bool(ce))
+        mapped = vec3(1.0) - exp(-finalColor * exposure);
+    if(bool(filmic))
+        mapped = Uncharted2ToneMapping(finalColor, exposure);
+    if(bool(aces))
+        mapped = ACESToneMapping(finalColor, exposure);
+
     // Gamma Correction
     finalColor = pow(mapped, vec3(1.0 / gamma));
 

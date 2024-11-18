@@ -34,6 +34,12 @@ struct Settings
     float exposure = 1.5f;
     bool foggy = true;
     bool bloom = true;
+
+    bool toneMapping = true;
+    bool reinhard = false;
+    bool ce = false;
+    bool filmic = true;
+    bool aces = false;
 };
 
 int main(void)
@@ -266,6 +272,10 @@ int main(void)
             frameBufferShader->SetUniform1f("exposure", settings.exposure);
             frameBufferShader->SetUniform1i("foggy", settings.foggy);
             frameBufferShader->SetUniform1i("bloom", settings.bloom);
+            frameBufferShader->SetUniform1i("reinhard", settings.reinhard);
+            frameBufferShader->SetUniform1i("ce", settings.ce);
+            frameBufferShader->SetUniform1i("filmic", settings.filmic);
+            frameBufferShader->SetUniform1i("aces", settings.aces);
 
             // ShadowMap : Second pass
             for (auto entry : chunkData)
@@ -323,14 +333,55 @@ int main(void)
             {
                 ImGui::Begin("Post Processing Settings");
                 {
+                    ImGui::Checkbox("Screen Space Fog", &settings.foggy);
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Bloom", &settings.bloom);
                     ImGui::DragFloat("Brightness", &settings.brightness, 0.01f);
                     ImGui::DragFloat("Contrast", &settings.contrast, 0.01f);
                     ImGui::DragFloat("Saturation", &settings.saturation, 0.01f);
                     ImGui::DragFloat("Gamma Correction", &settings.gamma, 0.01f);
-                    ImGui::DragFloat("HDR Exposure", &settings.exposure, 0.01f);
-                    ImGui::Checkbox("Screen Space Fog", &settings.foggy);
-                    ImGui::SameLine();
-                    ImGui::Checkbox("Bloom", &settings.bloom);
+                    ImGui::Checkbox("Tone Mapping    ", &settings.toneMapping);
+                    if (settings.toneMapping)
+                    {
+                        ImGui::Checkbox("Reinhard  ", &settings.reinhard);
+                        if (settings.reinhard)
+                        {
+                            settings.aces = false;
+                            settings.ce = false;
+                            settings.filmic = false;
+                        }
+                        ImGui::SameLine();
+                        ImGui::Checkbox("CryEngine  ", &settings.ce);
+                        if (settings.ce)
+                        {
+                            settings.reinhard = false;
+                            settings.filmic = false;
+                            settings.aces = false;
+                        }
+                        ImGui::SameLine();
+                        ImGui::Checkbox("Filmic", &settings.filmic);
+                        if (settings.filmic)
+                        {
+                            settings.reinhard = false;
+                            settings.ce = false;
+                            settings.aces = false;
+                        }
+                        ImGui::SameLine();
+                        ImGui::Checkbox("ACES", &settings.aces);
+                        if (settings.aces)
+                        {
+                            settings.reinhard = false;
+                            settings.ce = false;
+                            settings.filmic = false;
+                        }
+                        ImGui::DragFloat("HDR Exposure", &settings.exposure, 0.01f);
+                    }
+                    else {
+                        settings.reinhard = false;
+                        settings.ce = false;
+                        settings.filmic = false;
+                        settings.aces = false;
+                    }
                 }
                 ImGui::End();
             }

@@ -75,7 +75,7 @@ void main()
     if(texture2D(u_Texture, v_TexCoord).a == 0) //Transparent part
         discard;
 
-    vec3 color = vec3(texture2D(u_Texture, v_TexCoord).rg / 2, texture2D(u_Texture, v_TexCoord).b);
+    vec3 color = vec3(texture2D(u_Texture, v_TexCoord).r / 3, texture2D(u_Texture, v_TexCoord).g / 2, texture2D(u_Texture, v_TexCoord).b);
 
     // Blinn-Phong Light Model
     // ambient term
@@ -92,7 +92,7 @@ void main()
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
     vec3 specular = u_Ks * light_atten_coff * spec * vec3(1.0, 1.0, 1.0);  
 
-    FragColor = vec4(ambient + diffuse + specular, 0.8);
+    FragColor = vec4(ambient + diffuse + specular, 0.9);
 
     BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
     // Check whether fragment output is higher than threshold, if so output as brightness color
