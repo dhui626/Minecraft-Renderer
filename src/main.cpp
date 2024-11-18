@@ -31,6 +31,7 @@ struct Settings
     float contrast = 1.0f;
     float saturation = 1.2f;
     float gamma = 1.8f;
+    float exposure = 1.5f;
     bool foggy = true;
     bool bloom = true;
 };
@@ -262,6 +263,7 @@ int main(void)
             frameBufferShader->SetUniform1f("contrast", settings.contrast);
             frameBufferShader->SetUniform1f("saturation", settings.saturation);
             frameBufferShader->SetUniform1f("gamma", settings.gamma);
+            frameBufferShader->SetUniform1f("exposure", settings.exposure);
             frameBufferShader->SetUniform1i("foggy", settings.foggy);
             frameBufferShader->SetUniform1i("bloom", settings.bloom);
 
@@ -325,6 +327,7 @@ int main(void)
                     ImGui::DragFloat("Contrast", &settings.contrast, 0.01f);
                     ImGui::DragFloat("Saturation", &settings.saturation, 0.01f);
                     ImGui::DragFloat("Gamma Correction", &settings.gamma, 0.01f);
+                    ImGui::DragFloat("HDR Exposure", &settings.exposure, 0.01f);
                     ImGui::Checkbox("Screen Space Fog", &settings.foggy);
                     ImGui::SameLine();
                     ImGui::Checkbox("Bloom", &settings.bloom);

@@ -36,6 +36,7 @@ uniform float gamma;
 uniform float saturation;
 uniform int foggy;
 uniform int bloom;
+uniform float exposure;
 
 const float weight[5] = float[] (0.227027, 0.0972973, 0.0608108, 0.027027, 0.008108);
 
@@ -70,9 +71,6 @@ void main()
     // Brightness and Contrast
     color = (color - 0.5) * contrast + 0.5 + brightness;
 
-    // Gamma Correction
-    color = pow(color, vec3(1.0 / gamma));
-
     // Bloom
     if(bool(bloom))
     {
@@ -92,24 +90,28 @@ void main()
 
         color = color + blurredColor;
     }
-    color = clamp(color, 0.0, 1.0);
-    vec3 finalColor = vec3(0.0);
 
     // Screen Space Fog
+    vec3 finalColor = vec3(0.0);
     if (bool(underwater))
 	{
-		float fogFactor = (fogFar - depth) / (fogFar - waterNear);
-		fogFactor = clamp(fogFactor, 0.0, 1.0);
-		finalColor = mix(waterColor, color, fogFactor);
+		float fogFactor = clamp((depth - waterNear) / (fogFar - waterNear),0.0, 1.0);
+		fogFactor = pow(fogFactor, 3.0);
+		finalColor = mix(color, waterColor, fogFactor);
 	}
     else if (bool(foggy)){
-        float fogFactor = (fogFar - depth) / (fogFar - fogNear);
-		fogFactor = clamp(fogFactor, 0.0, 1.0);
-		finalColor = mix(fogColor, color, fogFactor);
+        float fogFactor = clamp((depth - fogNear) / (fogFar - fogNear), 0.0, 1.0);
+		fogFactor = pow(fogFactor, 3.0);
+		finalColor = mix(color, fogColor, fogFactor);
     }
     else{
         finalColor = color;
     }
+
+    // Tone Mapping
+    vec3 mapped = vec3(1.0) - exp(-finalColor * exposure);
+    // Gamma Correction
+    finalColor = pow(mapped, vec3(1.0 / gamma));
 
     gl_FragColor = vec4(vec3(finalColor), 1.0);
 };
