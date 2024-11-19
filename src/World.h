@@ -23,15 +23,17 @@ public:
 	~World();
 
 	void SetRenderDistance(int distance);
+	int GetRenderDistance() { return m_RenderDistance; };
 	void Generate(unsigned int seed);
 	void Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 cameraPos);
 	glm::ivec3 GetCurrentChunkPos();
+	BlockType GetBlockType(glm::vec3 pos);
 
 	size_t GetChunkNum();
 	std::unordered_map<std::pair<int, int>, std::shared_ptr<Chunk>, pair_hash> GetChunkData();
 
 private:
-	int m_RenderDistance = 1;
+	int m_RenderDistance = 1, m_lastRenderDistance = 0;
 	int m_ChunkSize;
 	unsigned int m_Seed = 0;
 	glm::ivec3 lastChunkPos;

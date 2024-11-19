@@ -174,7 +174,8 @@ int main(void)
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            world.SetRenderDistance(renderDistance);
+            if(world.GetRenderDistance() != renderDistance)
+                world.SetRenderDistance(renderDistance);
             world.Update(allShaders, camera.GetPosition());
             auto chunkData = world.GetChunkData();
 
@@ -297,7 +298,7 @@ int main(void)
             }
 
             frameBufferShader->Bind();
-            if (camera.GetPosition().y < 18)
+            if (world.GetBlockType(camera.GetPosition()) == BlockType::Water)
                 frameBufferShader->SetUniform1i("underwater", 1);
             else
                 frameBufferShader->SetUniform1i("underwater", 0);
@@ -321,7 +322,7 @@ int main(void)
                     if (settings.PCSS)
                         settings.PCF = false;
                 }
-                ImGui::DragInt("Render Distance", &renderDistance, 1, 1, 6);
+                ImGui::DragInt("Render Distance", &renderDistance, 1, 1, 8);
                 ImGui::Text("Camera Position: (%f, %f, %f)", 
                     camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);

@@ -4,8 +4,8 @@
 
 Chunk::Chunk(int chunkSize, glm::vec3 originPos)
 {
-	m_ChunkSize = chunkSize;
-	data.resize(chunkSize * chunkSize * chunkSize);
+	m_ChunkSize = chunkSize + 2; // 多计算一圈（用于优化侧表面生成）
+	data.resize(m_ChunkSize * m_ChunkSize * m_ChunkSize);
     LoadBlockTextures();
     m_OriginPos = originPos;
 
@@ -18,8 +18,8 @@ Chunk::~Chunk()
 {
     std::cout << "Deleted chunk at pos(" << m_OriginPos.x << ", " << m_OriginPos.y << ", " << m_OriginPos.z << ")" << std::endl;
 }
-
-glm::uvec3 Chunk::GetXYZ(unsigned int index)
+// 输入实际的index(0-based)，获取data中该位置的方块类型
+int Chunk::GetBlockTypeID(glm::ivec3 index)
 {
 	/*      y
             |
@@ -27,16 +27,8 @@ glm::uvec3 Chunk::GetXYZ(unsigned int index)
            /
           z
 	*/
-	if (m_ChunkSize == 0)
-	{
-		return glm::vec3(0.0f, 0.0f, 0.0f);
-	}
-	unsigned int z = index / (m_ChunkSize * m_ChunkSize);
-	index -= z * (m_ChunkSize * m_ChunkSize);
-	unsigned int y = index / m_ChunkSize;
-	index -= y * m_ChunkSize;
-	unsigned int x = index;
-	return glm::vec3(x, y, z);
+    int type = data[index.x + 1 + (index.y + 1) * m_ChunkSize + (index.z + 1) * m_ChunkSize * m_ChunkSize];
+	return type;
 }
 
 void Chunk::LoadBlockTextures()
@@ -124,8 +116,8 @@ void Chunk::Generate(unsigned int seed)
             for (int i = 0; i < m_NoiseSettings.size(); i++)
             {
                 noiseValue2D += noise2D.eval(
-                    (float)((x + m_OriginPos.x) * m_NoiseSettings[i].frequency) + m_NoiseSettings[i].offset,
-                    (float)((z + m_OriginPos.z) * m_NoiseSettings[i].frequency) + m_NoiseSettings[i].offset)
+                    (float)((x - 1 + m_OriginPos.x) * m_NoiseSettings[i].frequency) + m_NoiseSettings[i].offset,
+                    (float)((z - 1 + m_OriginPos.z) * m_NoiseSettings[i].frequency) + m_NoiseSettings[i].offset)
                     * m_NoiseSettings[i].amplitude;
                 normalizeNum += m_NoiseSettings[i].amplitude;
             }
@@ -163,13 +155,13 @@ void Chunk::Generate(unsigned int seed)
 	m_Indices.clear();
 
 	// Rendering Optimize : BATCH RENDERING
-	for (int z = 0; z < m_ChunkSize; z++)
+	for (int z = 0; z < m_ChunkSize - 2; z++)
 	{
-		for (int x = 0; x < m_ChunkSize; x++)
+		for (int x = 0; x < m_ChunkSize - 2; x++)
 		{
-			for (int y = 0; y < m_ChunkSize; y++)
+			for (int y = 0; y < m_ChunkSize - 2; y++)
 			{
-                int blockTypeID = data[x + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize];
+                int blockTypeID = GetBlockTypeID(glm::ivec3(x, y, z));
                 if (blockTypeID == (int)BlockType::Air)
                     continue;
 
@@ -180,8 +172,8 @@ void Chunk::Generate(unsigned int seed)
                 if (blockTypeID >= (int)BlockType::Grass) //Block
                 {
                     // 检查六个面
-                    // 底面
-                    if (y == 0 || data[x + (y - 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    // 底面（暂时不需要）
+                    /*if (y == 0 || GetBlockTypeID(glm::ivec3(x, y - 1, z)) < (int)BlockType::Grass) {
                         // 添加底面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].bottom.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].bottom.y;
@@ -202,10 +194,10 @@ void Chunk::Generate(unsigned int seed)
                             0.0f, -1.0f, 0.0f,                               // 法向量
                             textureCoordX + 1.0f / 64.0f, textureCoordY + 1.0f / 32.0f // 纹理坐标
                             });
-                    }
+                    }*/
 
                     // 顶面
-                    if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    if (GetBlockTypeID(glm::ivec3(x, y + 1, z)) < (int)BlockType::Grass) {
                         // 添加顶面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].top.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].top.y;
@@ -229,7 +221,7 @@ void Chunk::Generate(unsigned int seed)
                     }
 
                     // 检查相邻方块以决定侧面
-                    if (x == 0 || data[(x - 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    if (GetBlockTypeID(glm::ivec3(x - 1, y, z)) < (int)BlockType::Grass) {
                         // 添加左面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].left.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].left.y;
@@ -252,7 +244,7 @@ void Chunk::Generate(unsigned int seed)
                             });
                     }
 
-                    if (x == m_ChunkSize - 1 || data[(x + 1) + y * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    if (GetBlockTypeID(glm::ivec3(x + 1, y, z)) < (int)BlockType::Grass) {
                         // 添加右面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].right.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].right.y;
@@ -275,7 +267,7 @@ void Chunk::Generate(unsigned int seed)
                             });
                     }
 
-                    if (z == 0 || data[x + y * m_ChunkSize + (z - 1) * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    if (GetBlockTypeID(glm::ivec3(x, y, z - 1)) < (int)BlockType::Grass) {
                         // 添加前面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].front.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].front.y;
@@ -298,7 +290,7 @@ void Chunk::Generate(unsigned int seed)
                             });
                     }
 
-                    if (z == m_ChunkSize - 1 || data[x + y * m_ChunkSize + (z + 1) * m_ChunkSize * m_ChunkSize] < (int)BlockType::Grass) {
+                    if (GetBlockTypeID(glm::ivec3(x, y, z + 1)) < (int)BlockType::Grass) {
                         // 添加后面四个顶点
                         float textureCoordX = m_BlockTypes[blockTypeID].back.x;
                         float textureCoordY = m_BlockTypes[blockTypeID].back.y;
@@ -325,9 +317,9 @@ void Chunk::Generate(unsigned int seed)
                 else if (blockTypeID == (int)BlockType::Water) { //water block
                     float textureCoordX = m_BlockTypes[blockTypeID].top.x;
                     float textureCoordY = m_BlockTypes[blockTypeID].top.y;
-                    if (y == m_ChunkSize - 1 || data[x + (y + 1) * m_ChunkSize + z * m_ChunkSize * m_ChunkSize] != (int)BlockType::Water)
+                    if (GetBlockTypeID(glm::ivec3(x, y + 1, z)) != (int)BlockType::Water)
                     { 
-                        // only top face
+                        // top face
                         m_WaterVertices.insert(m_WaterVertices.end(), {
                             position.x, position.y + 1.0f, position.z,
                             0.0f, 1.0f, 0.0f,

@@ -62,11 +62,13 @@ void Renderer::Draw() const
 
 void Renderer::DrawWater() const
 {
+    glDisable(GL_CULL_FACE);
     int i = (int)VAOType::Water;
     m_shader[i]->Bind();
     m_va[i]->Bind();
     m_ib[i]->Bind();
     GLCall(glDrawElements(GL_TRIANGLES, m_ib[i]->GetCount(), GL_UNSIGNED_INT, nullptr));
+    glEnable(GL_CULL_FACE);
 }
 
 void Renderer::SetVAOIBO(std::vector<std::shared_ptr<VertexArray>> va, std::vector<std::shared_ptr<IndexBuffer>> ib)

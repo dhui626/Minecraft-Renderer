@@ -28,6 +28,7 @@ World::~World()
 
 void World::SetRenderDistance(int distance)
 {
+	m_lastRenderDistance = m_RenderDistance;
 	m_RenderDistance = distance;
 }
 
@@ -61,7 +62,7 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 	int currentChunkY = cameraPos.y < 0 ? cameraPos.y / m_ChunkSize - 1 : cameraPos.y / m_ChunkSize;
 	int currentChunkZ = cameraPos.z < 0 ? cameraPos.z / m_ChunkSize - 1 : cameraPos.z / m_ChunkSize;
 	glm::ivec3 currentChunkPos{ currentChunkX ,currentChunkY,currentChunkZ };
-	if (currentChunkPos != lastChunkPos)
+	if (currentChunkPos != lastChunkPos || m_lastRenderDistance != m_RenderDistance)
 	{
 		// Generate new chunks
 		int gridNum = 2 * m_RenderDistance - 1;
@@ -92,6 +93,7 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 				++it;
 			}
 		}
+		m_lastRenderDistance = m_RenderDistance;
 	}
 
 	lastChunkPos = currentChunkPos;
@@ -100,6 +102,23 @@ void World::Update(std::vector<std::shared_ptr<Shader>> shader, glm::vec3 camera
 glm::ivec3 World::GetCurrentChunkPos()
 {
 	return lastChunkPos;
+}
+
+BlockType World::GetBlockType(glm::vec3 pos)
+{
+	int currentChunkX = pos.x < 0 ? pos.x / m_ChunkSize - 1 : pos.x / m_ChunkSize;
+	int currentChunkZ = pos.z < 0 ? pos.z / m_ChunkSize - 1 : pos.z / m_ChunkSize;
+	std::pair<int, int> currentChunk{ currentChunkX, currentChunkZ };
+	if (m_ChunkData.find(currentChunk) == m_ChunkData.end())
+	{
+		return BlockType::UNDIFINED; // no block here!
+	}
+	int currentBlockX = (pos.x < 0 ? pos.x - 1 : pos.x) - currentChunkX * m_ChunkSize;
+	int currentBlockY = pos.y < 0 ? 0 : (pos.y > m_ChunkSize ? m_ChunkSize : pos.y);
+	int currentBlockZ = (pos.z < 0 ? pos.z - 1 : pos.z) - currentChunkZ * m_ChunkSize;
+
+	int type = m_ChunkData.at(currentChunk)->GetBlockTypeID(glm::vec3(currentBlockX, currentBlockY, currentBlockZ));
+	return (BlockType)type;
 }
 
 size_t World::GetChunkNum()

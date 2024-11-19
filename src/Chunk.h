@@ -40,9 +40,9 @@ public:
 	std::vector<unsigned int> GetIndices() { return m_Indices; }
 	void RenderInitialize(std::vector<std::shared_ptr<Shader>> shader);
 	std::shared_ptr<Renderer> GetRenderer() { return m_renderer; };
+	int GetBlockTypeID(glm::ivec3 index);
 
 private:
-	glm::uvec3 GetXYZ(unsigned int index);
 	void LoadBlockTextures();
 
 private:

@@ -27,7 +27,7 @@ uniform int underwater;
 const vec3 waterColor = vec3(0.1, 0.3, 0.6);
 const vec3 fogColor = vec3(1.0, 1.0, 1.0);
 const float waterNear = 0.95;
-const float fogNear = 0.996;
+const float fogNear = 0.998;
 const float fogFar = 1.0;
 
 uniform float brightness;
