@@ -132,3 +132,22 @@ void FrameBuffer::GaussianBlur(int amount, std::shared_ptr<Shader> blurShader) c
     }
     Unbind();
 }
+
+void FrameBuffer::Resize(int width, int height) const
+{
+    // resize framebuffer texture
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, m_FrameBufferTexture[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+    }
+    // resize framebuffer depth texture
+    glBindTexture(GL_TEXTURE_2D, m_DepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    // resize Gaussian Blur buffer texture
+    for (GLuint i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, m_GaussianBlurBuffer[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+    }
+}

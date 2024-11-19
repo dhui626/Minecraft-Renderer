@@ -12,6 +12,7 @@ public:
 	void Unbind() const;
 	void Render() const;
 	void GaussianBlur(int amount, std::shared_ptr<Shader> blurShader) const;
+	void Resize(int width, int height) const;
 
 	unsigned int GetID() { return m_RendererID; }
 	unsigned int* GetFBOTexture() { return m_FrameBufferTexture; }

@@ -21,12 +21,17 @@
 float deltaTime = 0.0f;
 float lastFrameTime = 0.0f;
 
+int width = 1280;
+int height = 720;
+std::shared_ptr<FrameBuffer> fboPtr;
+
 struct Settings
 {
     float cameraSpeed = 2.0f;
     bool Shadow = true;
     bool PCF = true;
     bool PCSS = false;
+    bool VSync = false;
     float brightness = 0.0f;
     float contrast = 1.0f;
     float saturation = 1.2f;
@@ -42,6 +47,15 @@ struct Settings
     bool aces = false;
 };
 
+void framebufferSizeCallback(GLFWwindow* window, int newW, int newH)
+{
+    width = newW;
+    height = newH;
+    glViewport(0, 0, width, height);
+
+    fboPtr->Resize(width, height);
+ }
+
 int main(void)
 {
     GLFWwindow* window;
@@ -56,8 +70,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    int width = 1280;
-    int height = 720;
+
     window = glfwCreateWindow(width, height, "Mini Minecraft Renderer", NULL, NULL);
     if (!window)
     {
@@ -67,7 +80,8 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    glfwSwapInterval(settings.VSync ? 1 : 0);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     /* create a valid OpenGL rendering context and call glewInit() to initialize the extension entry points*/
     if (glewInit() != GLEW_OK)
@@ -155,7 +169,8 @@ int main(void)
 
         // Post-Processing FBO
         std::shared_ptr<Shader> frameBufferShader = std::make_shared<Shader>("res/shaders/FrameBuffer.shader");
-        FrameBuffer fbo(width, height);
+        static FrameBuffer fbo(width, height);
+        fboPtr = std::make_shared<FrameBuffer>(fbo);
 
         frameBufferShader->Bind();
         frameBufferShader->SetUniform1i("screenTexture", fbo.GetFBOTexture()[0]);
@@ -172,7 +187,9 @@ int main(void)
             float currentTime = static_cast<float>(glfwGetTime());
             deltaTime = currentTime - lastFrameTime;
             lastFrameTime = currentTime;
+            camera.OnResize(width, height);
             camera.OnUpdate(settings.cameraSpeed * deltaTime);
+            glfwSwapInterval(settings.VSync ? 1 : 0);
 
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -328,12 +345,13 @@ int main(void)
                         settings.PCF = false;
                 }
                 ImGui::DragInt("Render Distance", &renderDistance, 1, 1, 8);
+                ImGui::DragFloat("Camera Speed", &settings.cameraSpeed, 0.1f, 0.0f, std::numeric_limits<float>::max());
                 ImGui::Text("Camera Position: (%f, %f, %f)", 
                     camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+                ImGui::Checkbox("VSync", &settings.VSync);
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
                 ImGui::Text("Rendering Time: %.0f ms", deltaTime * 1000);
                 ImGui::Text("Loaded Chunks: %d", world.GetChunkData().size());
-                ImGui::DragFloat("Camera Speed", &settings.cameraSpeed, 0.1f, 0.0f, std::numeric_limits<float>::max());
                 ImGui::End();
             }
             {
