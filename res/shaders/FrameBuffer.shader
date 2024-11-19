@@ -42,8 +42,6 @@ uniform int filmic;
 uniform int aces;
 uniform float exposure;
 
-const float weight[5] = float[] (0.227027, 0.0972973, 0.0608108, 0.027027, 0.008108);
-
 vec3 rgb2hsv(vec3 c)
 {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -108,21 +106,8 @@ void main()
     // Bloom
     if(bool(bloom))
     {
-        vec2 tex_offset = 1.0 / textureSize(brightTexture, 0); // gets size of single texel
-        vec3 blurredColor = texture(brightTexture, v_TexCoord).rgb * weight[0]; // current fragment's contribution
-        // Gaussian Blur 5¡Á5
-        for(int i = 1; i < 5; ++i) //horizontal
-        {
-            blurredColor += texture(brightTexture, v_TexCoord + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-            blurredColor += texture(brightTexture, v_TexCoord - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-        }
-        for(int i = 1; i < 5; ++i) //vertical
-        {
-            blurredColor += texture(brightTexture, v_TexCoord + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-            blurredColor += texture(brightTexture, v_TexCoord - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-        }
-
-        color = color + blurredColor;
+        vec3 blurredColor = texture(brightTexture, v_TexCoord).rgb;
+        color = color + 0.5 * blurredColor;
     }
 
     // Screen Space Fog

@@ -55,6 +55,7 @@
     <None Include="res\shaders\BillBoard.shader" />
     <None Include="res\shaders\Water.shader" />
     <None Include="res\shaders\FrameBuffer.shader" />
+    <None Include="res\shaders\GaussianBlur.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

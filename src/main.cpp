@@ -159,8 +159,11 @@ int main(void)
 
         frameBufferShader->Bind();
         frameBufferShader->SetUniform1i("screenTexture", fbo.GetFBOTexture()[0]);
-        frameBufferShader->SetUniform1i("brightTexture", fbo.GetFBOTexture()[1]);
+        frameBufferShader->SetUniform1i("brightTexture", fbo.GetBlurTexture());
         frameBufferShader->SetUniform1i("depthTexture", fbo.GetDepthTexture());
+
+        // Gaussian Blur shader
+        std::shared_ptr<Shader> blurShader = std::make_shared<Shader>("res/shaders/GaussianBlur.shader");
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
@@ -297,6 +300,8 @@ int main(void)
                 renderer->DrawWater();
             }
 
+            if (settings.bloom)
+                fbo.GaussianBlur(10, blurShader);
             frameBufferShader->Bind();
             if (world.GetBlockType(camera.GetPosition()) == BlockType::Water)
                 frameBufferShader->SetUniform1i("underwater", 1);
