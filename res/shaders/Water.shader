@@ -11,6 +11,11 @@ uniform mat4 u_View;
 uniform mat4 u_Proj;
 uniform float time;
 
+out VS_OUT {
+    vec2 v_TexCoord;
+    vec3 v_Normal;
+} vs_out;
+
 out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
@@ -50,7 +55,35 @@ void main()
     v_TexCoord = texCoord;
     v_TexCoord.x += floor(mod(time / animationTime, 2)) * 1.0f / 64.0f;
 	v_TexCoord.y += floor(mod(time / animationTime * 2, 2)) * 1.0f / 32.0f;
+
+    vs_out.v_TexCoord = v_TexCoord;
+    vs_out.v_Normal = v_Normal;
 };
+
+
+#shader geometry
+#version 330 core
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 3) out;
+
+in VS_OUT {
+    vec2 v_TexCoord;
+    vec3 v_Normal;
+} gs_in[];
+
+out vec2 v_TexCoord;
+out vec3 v_Normal;
+out vec3 v_FragPos;
+
+void main() {
+    for (int i = 0; i < 3; ++i) {
+        v_TexCoord = gl_in[i].v_TexCoord;
+        gl_Position = gl_in[i].gl_Position;
+        EmitVertex();
+    }
+    EndPrimitive();
+}
 
 
 #shader fragment
