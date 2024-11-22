@@ -45,6 +45,8 @@ struct Settings
     bool ce = false;
     bool filmic = true;
     bool aces = false;
+
+    bool waterGeometry = false;
 };
 
 void framebufferSizeCallback(GLFWwindow* window, int newW, int newH)
@@ -283,6 +285,7 @@ int main(void)
             waterShader->SetUniform3f("u_CameraPos", camera.GetPosition());
             waterShader->SetUniform3f("u_LightPos", lightPos);
             waterShader->SetUniform1f("time", currentTime);
+            waterShader->SetUniform1i("waterGeometry", settings.waterGeometry);
 
             // Frame Shader
             frameBufferShader->Bind();
@@ -352,6 +355,7 @@ int main(void)
                 ImGui::Text("FPS: %.0f Hz", 1 / deltaTime);
                 ImGui::Text("Rendering Time: %.0f ms", deltaTime * 1000);
                 ImGui::Text("Loaded Chunks: %d", world.GetChunkData().size());
+                ImGui::Checkbox("Geometry Shader Test", &settings.waterGeometry);
                 ImGui::End();
             }
             {

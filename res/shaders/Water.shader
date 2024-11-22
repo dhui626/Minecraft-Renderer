@@ -14,11 +14,8 @@ uniform float time;
 out VS_OUT {
     vec2 v_TexCoord;
     vec3 v_Normal;
+    vec3 v_FragPos;
 } vs_out;
-
-out vec2 v_TexCoord;
-out vec3 v_Normal;
-out vec3 v_FragPos;
 
 float animationTime = 5.0;
 // wave parameter
@@ -47,17 +44,14 @@ void main()
     }
     vec4 wavedPosition = vec4(position.x + horizonal, position.y - maxAmplitude + height, position.z + horizonal, 1);
     gl_Position = u_Proj * u_View * u_Model * wavedPosition;
-    v_FragPos = (u_Model * wavedPosition).xyz;
+    vs_out.v_FragPos = (u_Model * wavedPosition).xyz;
 
-    v_Normal =  (u_Model * vec4(normal, 0.0)).xyz;
+    vs_out.v_Normal =  (u_Model * vec4(normal, 0.0)).xyz;
 
     // Texture Coords (4 water textures)
-    v_TexCoord = texCoord;
-    v_TexCoord.x += floor(mod(time / animationTime, 2)) * 1.0f / 64.0f;
-	v_TexCoord.y += floor(mod(time / animationTime * 2, 2)) * 1.0f / 32.0f;
-
-    vs_out.v_TexCoord = v_TexCoord;
-    vs_out.v_Normal = v_Normal;
+    vs_out.v_TexCoord = texCoord;
+    vs_out.v_TexCoord.x += floor(mod(time / animationTime, 2)) * 1.0f / 64.0f;
+	vs_out.v_TexCoord.y += floor(mod(time / animationTime * 2, 2)) * 1.0f / 32.0f;
 };
 
 
@@ -65,21 +59,38 @@ void main()
 #version 330 core
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
+layout(triangle_strip, max_vertices = 4) out;
 
 in VS_OUT {
     vec2 v_TexCoord;
     vec3 v_Normal;
+    vec3 v_FragPos;
 } gs_in[];
+
+uniform int waterGeometry;
 
 out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
 
 void main() {
+    vec4 origin = vec4(0.0);
+    if(bool(waterGeometry))
+    {
+        for (int i = 0; i < 3; ++i) {
+            origin += gl_in[i].gl_Position;
+        } // origin.w = 3
+    }
+
     for (int i = 0; i < 3; ++i) {
-        v_TexCoord = gl_in[i].v_TexCoord;
+        v_TexCoord = gs_in[i].v_TexCoord;
+        v_Normal = gs_in[i].v_Normal;
+        v_FragPos = gs_in[i].v_FragPos;
         gl_Position = gl_in[i].gl_Position;
+        if(bool(waterGeometry))
+        {
+            gl_Position += origin * 0.1;
+        }
         EmitVertex();
     }
     EndPrimitive();
